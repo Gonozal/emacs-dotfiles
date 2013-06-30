@@ -49,7 +49,7 @@
     git-commit-mode gitconfig-mode gitignore-mode
     guru-mode helm helm-projectile ido-ubiquitous
     key-chord magit melpa rainbow-mode
-    smex solarized-theme undo-tree
+    smex solarized-theme undo-tree s
     volatile-highlights yasnippet zenburn-theme)
   "A list of packages to ensure are installed at launch.")
 

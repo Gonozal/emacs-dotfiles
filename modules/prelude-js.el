@@ -1,19 +1,4 @@
 ;;; prelude-js.el --- Emacs Prelude: js-mode configuration.
-;;
-;; Copyright © 2011-2013 Bozhidar Batsov
-;;
-;; Author: Bozhidar Batsov <bozhidar@batsov.com>
-;; URL: https://github.com/bbatsov/prelude
-;; Version: 1.0.0
-;; Keywords: convenience
-
-;; This file is not part of GNU Emacs.
-
-;;; Commentary:
-
-;; Some basic configuration for js-mode.
-
-;;; License:
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
