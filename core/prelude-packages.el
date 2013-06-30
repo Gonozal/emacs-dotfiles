@@ -49,8 +49,13 @@
     git-commit-mode gitconfig-mode gitignore-mode
     guru-mode helm helm-projectile ido-ubiquitous
     key-chord magit melpa rainbow-mode
+<<<<<<< HEAD
     smex solarized-theme undo-tree s
     volatile-highlights yasnippet zenburn-theme)
+=======
+    smartparens smex solarized-theme undo-tree
+    volatile-highlights zenburn-theme)
+>>>>>>> e58a57a83f0afeea3d04ec7ab334c56c99e8dacf
   "A list of packages to ensure are installed at launch.")
 
 (defun prelude-packages-installed-p ()
