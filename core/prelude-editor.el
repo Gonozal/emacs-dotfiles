@@ -69,7 +69,7 @@ Will only occur if prelude-whitespace is also enabled."
 ;; confusion, as it will change the appearance of every existing file.
 ;; In some cases (python), even worse -- it will change the semantics
 ;; (meaning) of the program.
-;;
+;
 ;; Emacs modes typically provide a standard means to change the
 ;; indentation width -- eg. c-basic-offset: use that to adjust your
 ;; personal indentation width, while maintaining the style (and

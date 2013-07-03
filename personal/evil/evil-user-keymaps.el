@@ -62,8 +62,12 @@ Repeated invocations toggle between the two most recently open buffers."
   "gb"  'magit-blame-mode
   "gg"  'vc-git-grep
   "v"   'find-user-init-file
+  "t"   'align-regexp
   )
 
+;; No idea why these are exchanged in default config...
+(define-key evil-visual-state-map "O" 'exchange-point-and-mark)
+(define-key evil-visual-state-map "o" 'evil-visual-exchange-corners)
 
 (evil-ex-define-cmd "W" 'evil-write)
 (evil-ex-define-cmd "b" 'switch-to-previous-buffer)

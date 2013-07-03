@@ -19,7 +19,7 @@
 
 (require 'prelude-programming)
 
-(eval-after-load 'js-mode
+(eval-after-load 'js2-mode
   '(progn
      (defun prelude-js-mode-defaults ()
        ;; electric-layout-mode doesn't play nice with js-mode
@@ -27,7 +27,7 @@
 
      (setq prelude-js-mode-hook 'prelude-js-mode-defaults)
 
-     (add-hook 'js-mode-hook (lambda () (run-hooks 'prelude-js-mode-hook)))))
+     (add-hook 'js2-mode-hook (lambda () (run-hooks 'prelude-js-mode-hook)))))
 
 (provide 'prelude-js)
 

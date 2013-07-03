@@ -57,8 +57,8 @@
 
 
 (evil-leader/set-key
-  ",f"  'evil-ace-jump-char-mode
-  ",w"  'evil-ace-jump-word-mode)
+  "f"  'evil-ace-jump-char-mode
+  "w"  'evil-ace-jump-word-mode)
 
 (defadvice evil-visual-char (before spc-for-char-jump activate)
   (define-key evil-motion-state-map (kbd "SPC") #'evil-ace-jump-char-mode))
