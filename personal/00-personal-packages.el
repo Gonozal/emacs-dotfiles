@@ -88,10 +88,10 @@
 (require 'prelude-scheme)
 (require 'prelude-scss)
 (require 'prelude-xml)
+(require 'saveplace)
 
 
 ;; Require custom defuns
-(require 'setup-gui)
 (require 'setup-defuns)
 
 ;;;;;;;;;;;;;;;
@@ -122,10 +122,23 @@
 ;; silence emacs, damnit
 (setq ring-bell-function 'ignore)
 
+;; restore windows
+(unless noninteractive
+  (add-hook 'kill-emacs-hook 'stante-save-frame-parameters)
+  (add-hook 'after-init-hook 'stante-restore-frame-parameters))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Mac customizations ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; map function key to hyper
 (setq ns-function-modifier 'hyper)
+
+;; set correct shell path on mac os
+(when (memq window-system '(mac ns))
+  (exec-path-from-shell-initialize))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Whitespace and tab behavior ;;
@@ -289,6 +302,9 @@
 ;; Ruby
 (rvm-use-default)
 
+;; html, xml etc
+(tagedit-add-paredit-like-keybindings)
+(tagedit-add-experimental-features)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Javascript IDE configuration ;;
@@ -359,6 +375,9 @@
     undo-tree-history-directory-alist (quote (("." . "~/.emacs.d/temps/undotrees")))
     )
 
+(setq-default save-place t)
+(setq save-place-file (expand-file-name ".places" user-emacs-directory))
+
 ;;;;;;;;;;;;;;;;;
 ;; Setup hooks ;;
 ;;;;;;;;;;;;;;;;;
@@ -380,6 +399,9 @@
 (add-hook 'sgml-mode-hook 'emmet-mode)
 ;; Set emmet indentation to 2 spaces
 (add-hook 'emmet-mode-hook (lambda () (setq emmet-indentation 2)))
+
+;; laod tagedit in html modes
+(add-hook 'html-mode-hook (lambda () (tagedit-mode 1)))
 
 ;; Fix auto-complete when flyspell is active
 (add-hook 'flyspell-mode-hook
