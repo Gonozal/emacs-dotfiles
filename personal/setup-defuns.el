@@ -19,6 +19,12 @@
      '(defadvice ,mode (after rename-modeline activate)
         (setq mode-name ,new-name))))
 
+;; pretty print json
+(defun json-format ()
+  (interactive)
+  (save-excursion
+    (shell-command-on-region (mark) (point) "python -m json.tool" (buffer-name) t)))
+
 ;; In a region, increment the first numbers in each row
 ;; to be ascending from top to bottom
 (defun inc-num-region (p m)
@@ -120,6 +126,45 @@ Repeated invocations toggle between the two most recently open buffers."
   (interactive "r")
   (let ((mode (guess-mode-of-region beg end)))
     (funcall mode)))
+
+;; Ido
+(defun ido-disable-line-truncation ()
+  (set (make-local-variable 'truncate-lines) nil))
+(defun ido-define-keys () ;; C-n/p is more intuitive in vertical layout
+  )
+
+;;;;;;;;;;;;;;;;;;;;;
+;; File operations ;;
+;;;;;;;;;;;;;;;;;;;;;
+(defun rename-current-buffer-file ()
+  "Renames current buffer and file it is visiting."
+  (interactive)
+  (let ((name (buffer-name))
+        (filename (buffer-file-name)))
+    (if (not (and filename (file-exists-p filename)))
+        (error "Buffer '%s' is not visiting a file!" name)
+      (let ((new-name (read-file-name "New name: " filename)))
+        (if (get-buffer new-name)
+            (error "A buffer named '%s' already exists!" new-name)
+          (rename-file filename new-name 1)
+          (rename-buffer new-name)
+          (set-visited-file-name new-name)
+          (set-buffer-modified-p nil)
+          (message "File '%s' successfully renamed to '%s'"
+                   name (file-name-nondirectory new-name)))))))
+
+(defun delete-current-buffer-file ()
+  "Remove file connected to current buffer and kill buffer."
+  (interactive)
+  (let ((filename (buffer-file-name))
+        (buffer (current-buffer))
+        (name (buffer-name)))
+    (if (not (and filename (file-exists-p filename)))
+        (ido-kill-buffer)
+      (when (yes-or-no-p "Are you sure you want to remove this file? ")
+        (delete-file filename)
+        (kill-buffer buffer)
+        (message "File '%s' successfully removed" filename)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Text manipulation ;;

@@ -1,5 +1,10 @@
+;;; package --- Summary
+
+;;; Commentary:
+
+;;; Code:
 (add-to-list 'load-path "~/.emacs.d/personal-packages/fiplr")
-(add-to-list 'load-path "/Users/arne/Development/Scala/ensime/dist/elisp/")
+(add-to-list 'load-path "/Users/arne/Development/Scala/ensime/src/main/elisp/")
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 
 (prelude-ensure-module-deps
@@ -7,7 +12,7 @@
    ;; evil and plugins
    evil surround evil-numbers evil-nerd-commenter evil-leader
    ;; javascript
-   js2-mode js2-refactor ac-js2 emmet-mode
+   js2-mode js2-refactor ac-js2 tern
    ;; grep etc
    ag wgrep wgrep-ag
    ;; visual
@@ -17,6 +22,7 @@
    slim-mode coffee-mode nginx-mode scala-mode2 rvm
    ;; editing
    move-text tagedit yasnippet smartparens auto-complete
+   emmet-mode 
    flycheck-color-mode-line
    exec-path-from-shell
    buffer-move
@@ -37,6 +43,7 @@
 (require 'auto-complete-config)
 (require 'js2-mode)
 (require 'js2-refactor)
+(require 'tern)
 (require 'ac-js2)
 (require 'emmet-mode)
 (require 'diff-hl)
@@ -54,6 +61,8 @@
 (require 'yasnippet)
 (require 'restclient)
 (require 'popwin)
+(require 'flycheck)
+(require 'flycheck-color-mode-line)
 (require 'midnight)
 
 ;; require prelude packages
@@ -110,6 +119,52 @@
 (yas-global-mode 1)                    ;; use snippets everywhere
 (popwin-mode 1)                        ;; use popup windows instead of idle windows
 
+;; silence emacs, damnit
+(setq ring-bell-function 'ignore)
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+;; Mac customizations ;;
+;;;;;;;;;;;;;;;;;;;;;;;;
+(setq ns-function-modifier 'hyper)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Whitespace and tab behavior ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq whitespace-line-column 80) ;; limit line length
+(setq whitespace-style '(face empty trailing lines-tail))
+
+;;;; Tab settings ;;;;
+; Tab width is 2
+(setq tab-width 2)
+
+; Tab width is 2 by default..
+(setq-default tab-width 2)
+
+; Use spaces always.
+(setq indent-tabs-mode nil)
+
+; Jump by 2.
+(setq c-basic-offset 2)
+
+; this defaulted to 4 and had to be reset to 2.
+(setq perl-indent-level 2)
+
+;Tab stop list out to col 52
+;Manually set by x2
+(setq tab-stop-list
+      '(2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48 50 52))
+
+(custom-set-variables
+ '(js2-basic-offset 2)
+ '(js2-bounce-indent-p t)
+)
+
+(setq js-indent-level 2)
+(setq-default js2-basic-offset 2)
+(setq js2-basic-offset 2)
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Basic plugins setup ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -127,6 +182,21 @@
 (global-undo-tree-mode 1)
 (setq undo-tree-auto-save-history t)
 
+;; ido vertical customization
+(setq ido-decorations
+      (quote ("\n-> " "" "\n   " "\n   ..." "[" "]" " [No match]"
+              " [Matched]" " [Not readable]" " [Too big]" " [Confirm]")))
+
+;; load flycheck
+(eval-after-load "flycheck"
+  '(add-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode))
+
+;; projectile
+(projectile-global-mode)
+(global-set-key (kbd "C-c h") 'helm-projectile)
+
+;; Fiplr
+(setq fiplr-root-markers '(".git"))
 
 ;;;;;;;;;;;;;;;;
 ;; Setup evil ;;
@@ -219,6 +289,62 @@
 ;; Ruby
 (rvm-use-default)
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Javascript IDE configuration ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(setq ac-js2-evaluate-calls t)
+
+(setq httpd-port 9090)
+
+(setq js2-mirror-mode nil)
+
+(setq-default js2-global-externs
+              '("module" "require" "buster" "sinon" "assert" "refute"
+                "setTimeout" "clearTimeout" "setInterval" "clearInterval"
+                "location" "__dirname" "console" "JSON", "confirm"))
+
+(setq-default js2-auto-indent-p t)
+
+(setq-default js2-show-parse-errors nil)
+(setq-default js2-strict-missing-semi-warning nil)
+(setq-default js2-strict-trailing-comma-warning t) ;; jshint does not warn about this now for some reason
+
+;; JS refactoring
+(js2r-add-keybindings-with-prefix "C-c C-m")
+
+;; Use lambda for anonymous functions
+(font-lock-add-keywords
+ 'js2-mode `(("\\(function\\) *("
+              (0 (progn (compose-region (match-beginning 1)
+                                        (match-end 1) "\u0192")
+                        nil)))))
+
+;; Use right arrow for return in one-line functions
+(font-lock-add-keywords
+ 'js2-mode `(("function *([^)]*) *{ *\\(return\\) "
+              (0 (progn (compose-region (match-beginning 1)
+                                        (match-end 1) "\u2190")
+                        nil)))))
+
+(add-to-list 'auto-mode-alist (cons (rx ".js" eos) 'js2-mode))
+
+(eval-after-load 'auto-complete
+  '(eval-after-load 'tern
+     '(progn
+        (require 'tern-auto-complete)
+        (tern-ac-setup))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; File to language mappings ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq auto-mode-alist  (cons '("Gemfile$" . ruby-mode) auto-mode-alist))
+(setq auto-mode-alist  (cons '("Gemfile.lock$" . ruby-mode) auto-mode-alist))
+(setq auto-mode-alist  (cons '("Rakefile$" . ruby-mode) auto-mode-alist))
+(add-to-list 'auto-mode-alist '("\\.rake$" . ruby-mode))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Backups and auto save ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -236,6 +362,10 @@
 ;;;;;;;;;;;;;;;;;
 ;; Setup hooks ;;
 ;;;;;;;;;;;;;;;;;
+
+;; ido vertical
+(add-hook 'ido-setup-hook 'ido-define-keys)
+(add-hook 'ido-minibuffer-setup-hook 'ido-disable-line-truncation)
 
 ;; activate ensime in scala files
 (add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
@@ -255,6 +385,12 @@
 (add-hook 'flyspell-mode-hook
           (lambda ()
             (ac-flyspell-workaround)))
+
+;; activate tern in JS mode
+(add-hook 'js2-mode-hook (lambda () (tern-mode t)))
+
+;; activate flycheck ind js2-mode
+(add-hook 'js2-mode-hook (lambda () (flycheck-mode 1)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -374,6 +510,10 @@
 (define-key ac-completing-map (kbd "ESC") 'evil-normal-state)
 (evil-make-intercept-map ac-completing-map)
 
+;; More intuitive ido key bindings now that ido is vertical
+(define-key ido-completion-map (kbd "C-n") 'ido-next-match)
+(define-key ido-completion-map (kbd "C-p") 'ido-prev-match)
+
 (ac-set-trigger-key "TAB") ; AFTER input prefix, press TAB key ASAP
 
 ;; window management
@@ -393,6 +533,12 @@
 
 ;; Autoindent on newline
 (global-set-key (kbd "RET") 'newline-and-indent)
+
+;;;;;;;;;;;;;;;;;;;;;;
+;; Evil ex-commands ;;
+;;;;;;;;;;;;;;;;;;;;;;
+(evil-ex-define-cmd "Rename" 'rename-current-buffer-file)
+(evil-ex-define-cmd "Remove" 'delete-current-buffer-file)
 
 (provide '00-personal-packages)
 ;;; 00-personal-packages ends here
