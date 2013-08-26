@@ -1,5 +1,14 @@
+;;; package -- Summary
+
+;;; Commentary:
+
+;;; Code:
+(require 'evil)
+(require 'evil-leader)
+(require 'ace-jump-mode)
+
 (defun toggle-fullscreen ()
-  "Toggle full screen"
+  "Toggle full screen."
   (interactive)
   (set-frame-parameter
    nil 'fullscreen
@@ -42,3 +51,6 @@
   (evil-enclose-ace-jump
    (ace-jump-mode 5)
    (forward-char -1)))
+
+(provide 'setup-defuns)
+;;; setup-defuns.el ends here

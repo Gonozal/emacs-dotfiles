@@ -175,8 +175,29 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Custom keybindings ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; ace-jump-mode
 (define-key evil-normal-state-map (kbd "+") 'evil-numbers/inc-at-pt)
 (define-key evil-normal-state-map (kbd "-") 'evil-numbers/dec-at-pt)
+
+(define-key evil-motion-state-map (kbd "SPC") #'evil-ace-jump-char-mode)
+(define-key evil-motion-state-map (kbd "C-SPC") #'evil-ace-jump-word-mode)
+
+(define-key evil-operator-state-map (kbd "SPC") #'evil-ace-jump-char-mode)      ; similar to f
+(define-key evil-operator-state-map (kbd "C-SPC") #'evil-ace-jump-char-to-mode) ; similar to t
+(define-key evil-operator-state-map (kbd "M-SPC") #'evil-ace-jump-word-mode)
+
+(evil-leader/set-key
+  "f"  'evil-ace-jump-char-mode
+  "w"  'evil-ace-jump-word-mode)
+
+(defadvice evil-visual-char (before spc-for-char-jump activate)
+  (define-key evil-motion-state-map (kbd "SPC") #'evil-ace-jump-char-mode))
+
+(defadvice evil-visual-block (before spc-for-char-jump activate)
+  (define-key evil-motion-state-map (kbd "SPC") #'evil-ace-jump-char-mode))
+
+
 
 ;; Move-text keybindings (move text or region up/down)
 (global-set-key [M-k] 'move-text-up)
