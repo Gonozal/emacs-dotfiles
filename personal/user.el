@@ -33,3 +33,9 @@
 (setq ns-function-modifier 'hyper)
 
 (setq ring-bell-function 'ignore)
+
+;; pretty print json
+(defun json-format ()
+  (interactive)
+  (save-excursion
+    (shell-command-on-region (mark) (point) "python -m json.tool" (buffer-name) t)))

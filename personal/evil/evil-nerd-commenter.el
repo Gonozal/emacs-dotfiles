@@ -1,6 +1,9 @@
 ;; Setup nerd commenter
-(setq evil-leader/leader "," evil-leader/in-all-states t)
+
+(require 'evil)
+(require 'evil-leader)
 (evil-leader/set-key
   "c SPC" 'evilnc-comment-or-uncomment-lines
-  "cc" 'evilnc-comment-or-uncomment-to-the-line
   )
+
+(evil-define-key 'visual global-map (kbd ",c SPC") 'comment-or-uncomment-region)

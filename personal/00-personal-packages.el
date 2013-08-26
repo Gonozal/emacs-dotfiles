@@ -1,81 +1,59 @@
-(add-to-list 'load-path "~/.emacs.d/personal-packages/ensime")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/fiplr")
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 
 (prelude-ensure-module-deps
  '(
-   evil
-   surround
-   evil-numbers
-   evil-nerd-commenter
-   evil-leader
-   ruby-end
-   rvm
+   ;; evil and plugins
+   evil surround evil-numbers evil-nerd-commenter evil-leader
+   ;; javascript
+   js2-mode js2-refactor ac-js2 emmet-mode
+   ;; grep etc
+   ag wgrep wgrep-ag
+   ;; visual
+   diff-hl linum-relative rainbow-delimiters browse-kill-ring popwin
+   pos-tip
+   ;; misc language support
+   slim-mode coffee-mode nginx-mode scala-mode2 rvm
+   ;; editing
+   move-text tagedit yasnippet smartparens auto-complete
    flycheck-color-mode-line
-   indent-guide
-   js2-mode
-   js2-refactor
-   diff-hl
-   linum-relative
-   rainbow-delimiters
-   helm-ag
    exec-path-from-shell
-   move-text
-   tagedit
-   browse-kill-ring
-   auto-complete
-   scala-mode2
    buffer-move
-   ac-js2
-   smartparens
-   emmet-mode
-   yasnippet
    restclient
    grizzl
-   slim-mode
-   coffee-mode
-   nginx-mode
-   popwin
    midnight
-   pos-tip
    )
  )
 
 
 (require 'rvm)
 (require 'evil)
-
 (require 'evil-numbers)
 (require 'evil-leader)
-(require 'ruby-end)
 (require 'powerline)
-(require 'indent-guide)
-(require 'js2-mode)
-(require 'js2-refactor)
-(require 'diff-hl)
-(require 'linum-relative)
-(require 'rainbow-delimiters)
-(require 'helm-ag)
-(require 'exec-path-from-shell)
-(require 'move-text)
-(require 'tagedit)
-(require 'browse-kill-ring)
 (require 'auto-complete)
 (require 'auto-complete-config)
-(require 'scala-mode2)
-(require 'buffer-move)
+(require 'js2-mode)
+(require 'js2-refactor)
 (require 'ac-js2)
-(require 'ensime)
+(require 'emmet-mode)
+(require 'diff-hl)
+(require 'ag)
+(require 'wgrep-ag)
+(require 'linum-relative)
 (require 'smartparens)
 (require 'smartparens-config)
-(require 'emmet-mode)
+(require 'rainbow-delimiters)
+(require 'exec-path-from-shell)
+(require 'move-text)
+(require 'browse-kill-ring)
+(require 'scala-mode2)
 (require 'yasnippet)
 (require 'restclient)
 (require 'popwin)
 (require 'midnight)
 
-
 ;; require prelude packages
-
 ;; (require 'prelude-c)
 ;; (require 'prelude-clojure)
 ;; (require 'prelude-coffee)
@@ -100,21 +78,31 @@
 (require 'prelude-xml)
 
 
-(rvm-use-default)
-(powerline-default-theme)
-(set-face-attribute 'mode-line nil :box nil :family "Source Code Pro for Powerline" :height 100 :weight 'light)
-(set-face-attribute 'mode-line-inactive nil :box nil)
+;; Require custom defuns
+(require 'setup-gui)
+(require 'setup-defuns)
 
-;; (indent-guide-global-mode)
-(global-diff-hl-mode)
+;;;;;;;;;;;;;;;
+;; Setup GUI ;;
+;;;;;;;;;;;;;;;
 
-(move-text-default-bindings)
-(browse-kill-ring-default-keybindings)
-(ac-config-default)
-(global-linum-mode)
-(yas-global-mode 1)
-(popwin-mode 1)
-; Clean up buffers
+(browse-kill-ring-default-keybindings) ;; load defult keybindings for killring browser
+(ac-config-default)                    ;; load default autocomplete config
+(global-linum-mode)                    ;; line numbering everywhere
+(yas-global-mode 1)                    ;; use snippets everywhere
+(popwin-mode 1)                        ;; use popup windows instead of idle windows
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Basic plugins setup ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Setup evil
+(evil-mode nil)
+(global-evil-leader-mode 1)
+(evil-mode 1)
+(setq evil-shift-width 2)
+
+;; Midnight-like buffer killing
 (add-to-list 'clean-buffer-list-kill-buffer-names
              '("*Packages*"
                "*Completions*"
@@ -123,9 +111,97 @@
 (setq clean-buffer-list-delay-special 0)
 (run-with-idle-timer 300 t 'clean-buffer-list)
 
+;;;;;;;;;;;;;;;;;;;;;;;;
+;; Autocomplete setup ;;
+;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Develop and keep personal snippets under ~/emacs.d/mysnippets
-(setq yas/root-directory "~/.emacs.d/mysnippets")
-(yas/load-directory yas/root-directory)
+(global-auto-complete-mode t)
+(setq ac-expand-on-auto-complete nil)
+(setq ac-dwim nil) ; To get pop-ups with docs even if a word is uniquely completed
 
-(provide 'personal-packages)
+;; extra modes auto-complete must support
+(dolist (mode '(magit-log-edit-mode log-edit-mode org-mode text-mode haml-mode
+                sass-mode yaml-mode csv-mode espresso-mode haskell-mode
+                html-mode nxml-mode sh-mode smarty-mode clojure-mode
+                lisp-mode textile-mode markdown-mode tuareg-mode
+                js2-mode css-mode less-css-mode coffee-mode scss-mode
+                slim-mode))
+  (add-to-list 'ac-modes mode))
+
+(set-default 'ac-sources
+             '(ac-source-abbrev
+               ac-source-dictionary
+               ac-source-yasnippet
+               ac-source-words-in-buffer
+               ac-source-words-in-same-mode-buffers
+               ac-source-semantic))
+
+(setq dabbrev-friend-buffer-function 'sanityinc/dabbrev-friend-buffer)
+
+
+(setq ac-delay 0.05)
+(setq ac-auto-show-menu 0.1)
+(setq ac-use-fuzzy 1)
+(ac-config-default)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Language customizations ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Ruby
+(rvm-use-default)
+
+;;;;;;;;;;;;;;;;;
+;; Setup hooks ;;
+;;;;;;;;;;;;;;;;;
+
+;; disabled linum mode in org-mode
+(add-hook 'org-mode-hook (lambda () (linenum-mode 0)))
+
+;; stop ace-jump mode from going into insert mode
+(add-hook 'ace-jump-mode-end-hook 'exit-recursive-edit)
+
+;; load emmet when in sgml (xml, html etc) mode
+(add-hook 'sgml-mode-hook 'emmet-mode)
+;; Set emmet indentation to 2 spaces
+(add-hook 'emmet-mode-hook (lambda () (setq emmet-indentation 2)))
+
+;; Fix auto-complete when flyspell is active
+(add-hook 'flyspell-mode-hook
+          (lambda ()
+            (ac-flyspell-workaround)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+;; Custom keybindings ;;
+;;;;;;;;;;;;;;;;;;;;;;;;
+(define-key evil-normal-state-map (kbd "+") 'evil-numbers/inc-at-pt)
+(define-key evil-normal-state-map (kbd "-") 'evil-numbers/dec-at-pt)
+
+;; Move-text keybindings (move text or region up/down)
+(global-set-key [M-k] 'move-text-up)
+(global-set-key [M-j] 'move-text-down)
+
+(global-set-key (kbd "C-c f") 'simp-project-find-file)
+(global-set-key (kbd "M-t") 'fiplr-find-file)
+
+;; default mac shortcuts to save file and close window
+(global-set-key (kbd "M-s") 'save-buffer)
+(global-set-key (kbd "M-w") 'quit-window)
+
+(global-set-key (kbd "M-RET") 'toggle-fullscreen)
+
+;; Autocomplete
+(define-key ac-completing-map (kbd "C-n") 'ac-next)
+(define-key ac-completing-map (kbd "C-p") 'ac-previous)
+(define-key ac-completing-map (kbd "C-g") 'ac-stop)
+(define-key ac-completing-map (kbd "ESC") 'evil-normal-state)
+(evil-make-intercept-map ac-completing-map)
+
+(ac-set-trigger-key "TAB") ; AFTER input prefix, press TAB key ASAP
+
+;; Autoindent on newline
+(global-set-key (kbd "RET") 'newline-and-indent)
+
+(provide '00-personal-packages)
+;;; 00-personal-packages ends here

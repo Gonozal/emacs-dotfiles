@@ -77,11 +77,39 @@ adaptive-fill-mode is effective when joining."
   (evil-destroy beg end type register yank-handler)
   (evil-paste-before 1 register))
 
+(evil-define-operator evil-destroy-char (beg end type register)
+  "Delete next character."
+  :motion evil-forward-char
+  (interactive "<R><x>")
+  (evil-destroy beg end type register))
+
+(defun inc-num-region (p m)
+  "Increments the numbers in a given region"
+  (interactive "r")
+  (save-restriction
+    (save-excursion
+      (narrow-to-region p m)
+      (goto-char (point-min))
+      (forward-line)
+      (let ((counter 1))
+        (while (not (eq (point)
+                        (point-max)))
+          (goto-char (point-at-eol))
+          (search-backward-regexp "[0-9]+" (point-at-bol) t)
+          (let* ((this-num (string-to-number (match-string 0)))
+                 (new-num-str (number-to-string (+ this-num
+                                                   counter))))
+            (replace-match new-num-str)
+            (incf counter)
+            (forward-line)))))))
+
+
+(define-key evil-visual-state-map "+" 'inc-num-region)
 
 (define-key evil-operator-state-map (kbd "lw") 'evil-little-word)
 
-(define-key evil-normal-state-map "x" 'evil-destroy)
-(define-key evil-visual-state-map "x" 'evil-destroy)
+(define-key evil-normal-state-map "x" 'evil-destroy-char)
+(define-key evil-visual-state-map "x" 'evil-destroy-char)
 
 (define-key evil-normal-state-map "ü" 'evil-destroy-replace)
 (define-key evil-visual-state-map "ü" 'evil-destroy-replace)

@@ -69,6 +69,15 @@ Repeated invocations toggle between the two most recently open buffers."
 (define-key evil-visual-state-map "O" 'exchange-point-and-mark)
 (define-key evil-visual-state-map "o" 'evil-visual-exchange-corners)
 
+(define-key evil-normal-state-map (kbd "M-F") 'helm-ag)
+(define-key evil-normal-state-map (kbd "M-s") 'save-buffer)
+(define-key evil-insert-state-map (kbd "M-s") 'save-buffer)
+(global-set-key (kbd "M-s") 'save-buffer)
+
 (evil-ex-define-cmd "W" 'evil-write)
 (evil-ex-define-cmd "b" 'switch-to-previous-buffer)
 
+(evil-add-hjkl-bindings magit-status-mode-map 'emacs
+  "K" 'magit-discard-item
+  "l" 'magit-key-mode-popup-logging
+  "h" 'magit-toggle-diff-refine-hunk)
