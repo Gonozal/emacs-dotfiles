@@ -106,6 +106,10 @@
 (setq clean-buffer-list-delay-special 0)
 (run-with-idle-timer 300 t 'clean-buffer-list)
 
+;; Setup undo-tree
+(global-undo-tree-mode 1)
+(setq undo-tree-auto-save-history t)
+
 
 ;;;;;;;;;;;;;;;;
 ;; Setup evil ;;
@@ -144,6 +148,7 @@
 (define-key minibuffer-local-completion-map [escape] 'abort-recursive-edit)
 (define-key minibuffer-local-must-match-map [escape] 'abort-recursive-edit)
 (define-key minibuffer-local-isearch-map [escape] 'abort-recursive-edit)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Autocomplete setup ;;
@@ -186,6 +191,19 @@
 ;; Ruby
 (rvm-use-default)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Backups and auto save ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(setq backup-by-copying t    ; Don't delink hardlinks
+    backup-directory-alist '(("." . "~/.emacs.d/temps/backups"))
+    version-control t      ; Use version numbers on backups
+    delete-old-versions t  ; Automatically delete excess backups
+    kept-new-versions 20   ; how many of the newest versions to keep
+    kept-old-versions 5    ; and how many of the old
+
+    auto-save-file-name-transforms `((".*" ,"~/.emacs.d/temps/autosaves" t))
+    undo-tree-history-directory-alist (quote (("." . "~/.emacs.d/temps/undotrees")))
+    )
 
 ;;;;;;;;;;;;;;;;;
 ;; Setup hooks ;;
@@ -221,11 +239,35 @@
 (define-key evil-visual-state-map "o" 'evil-visual-exchange-corners)
 ;; make ctrl-u scroll up as is in vim
 (define-key evil-normal-state-map (kbd "C-u") 'evil-scroll-up)
+;; J joins lines
+(define-key evil-normal-state-map "J" 'evil-join-unfill)
+(define-key evil-visual-state-map "J" 'evil-join-unfill)
 
-;; ace-jump-mode
+;; custom evil motions / operators
+(define-key evil-operator-state-map (kbd "lw") 'evil-little-word)
+
+;; destroy (do not yank) chars with x
+(define-key evil-normal-state-map "x" 'evil-destroy-char)
+(define-key evil-visual-state-map "x" 'evil-destroy-char)
+
+;;replace without yanking with ü
+(define-key evil-normal-state-map "ü" 'evil-destroy-replace)
+(define-key evil-visual-state-map "ü" 'evil-destroy-replace)
+
+;; Bring back narrowing. And while we are a it, guess the syntax of new region
+(define-key evil-normal-state-map "m" 'evil-narrow-indirect)
+(define-key evil-visual-state-map "m" 'evil-narrow-indirect)
+
+;; number incrementing and decrementing
 (define-key evil-normal-state-map (kbd "+") 'evil-numbers/inc-at-pt)
 (define-key evil-normal-state-map (kbd "-") 'evil-numbers/dec-at-pt)
+(define-key evil-visual-state-map "+" 'inc-num-region) ;; Increment rows of numbers ascendin
 
+;; nerd commenter
+(evil-leader/set-key "c SPC" 'evilnc-comment-or-uncomment-lines )
+(evil-define-key 'visual global-map (kbd ",c SPC") 'comment-or-uncomment-region)
+
+;; ace-jump-mode
 (define-key evil-motion-state-map (kbd "SPC") #'evil-ace-jump-char-mode)
 (define-key evil-motion-state-map (kbd "C-SPC") #'evil-ace-jump-word-mode)
 
