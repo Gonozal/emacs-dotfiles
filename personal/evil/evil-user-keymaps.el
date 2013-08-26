@@ -11,29 +11,6 @@ Repeated invocations toggle between the two most recently open buffers."
   (switch-to-buffer (other-buffer (current-buffer) 1)))
 
 
-;; Clear insert state bindings.
-(setcdr evil-insert-state-map nil)
-
-;; Don't wait for any other keys after escape is pressed.
-(setq evil-esc-delay 0)
-
-;; Make sure escape gets back to normal state and quits things.
-(define-key evil-insert-state-map [escape] 'evil-normal-state)
-(define-key evil-visual-state-map [escape] 'evil-normal-state)
-(define-key evil-emacs-state-map [escape] 'evil-normal-state)
-(define-key minibuffer-local-map [escape] 'minibuffer-keyboard-quit)
-(define-key minibuffer-local-ns-map [escape] 'minibuffer-keyboard-quit)
-(define-key minibuffer-local-completion-map [escape] 'minibuffer-keyboard-quit)
-(define-key minibuffer-local-must-match-map [escape] 'minibuffer-keyboard-quit)
-(define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
-(define-key minibuffer-local-map [escape] 'abort-recursive-edit)
-(define-key minibuffer-local-ns-map [escape] 'abort-recursive-edit)
-(define-key minibuffer-local-completion-map [escape] 'abort-recursive-edit)
-(define-key minibuffer-local-must-match-map [escape] 'abort-recursive-edit)
-(define-key minibuffer-local-isearch-map [escape] 'abort-recursive-edit)
-
-;;; make ctrl-u scroll up as is in vim
-(define-key evil-normal-state-map (kbd "C-u") 'evil-scroll-up)
 
 (evil-leader/set-leader ",")
 
@@ -64,20 +41,3 @@ Repeated invocations toggle between the two most recently open buffers."
   "v"   'find-user-init-file
   "t"   'align-regexp
   )
-
-;; No idea why these are exchanged in default config...
-(define-key evil-visual-state-map "O" 'exchange-point-and-mark)
-(define-key evil-visual-state-map "o" 'evil-visual-exchange-corners)
-
-(define-key evil-normal-state-map (kbd "M-F") 'helm-ag)
-(define-key evil-normal-state-map (kbd "M-s") 'save-buffer)
-(define-key evil-insert-state-map (kbd "M-s") 'save-buffer)
-(global-set-key (kbd "M-s") 'save-buffer)
-
-(evil-ex-define-cmd "W" 'evil-write)
-(evil-ex-define-cmd "b" 'switch-to-previous-buffer)
-
-(evil-add-hjkl-bindings magit-status-mode-map 'emacs
-  "K" 'magit-discard-item
-  "l" 'magit-key-mode-popup-logging
-  "h" 'magit-toggle-diff-refine-hunk)

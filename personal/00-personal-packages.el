@@ -30,6 +30,7 @@
 (require 'evil)
 (require 'evil-numbers)
 (require 'evil-leader)
+(require 'surround)
 (require 'powerline)
 (require 'auto-complete)
 (require 'auto-complete-config)
@@ -96,12 +97,6 @@
 ;; Basic plugins setup ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Setup evil
-(evil-mode nil)
-(global-evil-leader-mode 1)
-(evil-mode 1)
-(setq evil-shift-width 2)
-
 ;; Midnight-like buffer killing
 (add-to-list 'clean-buffer-list-kill-buffer-names
              '("*Packages*"
@@ -110,6 +105,45 @@
                "*Backtrace*"))
 (setq clean-buffer-list-delay-special 0)
 (run-with-idle-timer 300 t 'clean-buffer-list)
+
+
+;;;;;;;;;;;;;;;;
+;; Setup evil ;;
+;;;;;;;;;;;;;;;;
+
+;; General setup
+(evil-mode nil)
+(global-evil-leader-mode 1)
+(evil-mode 1)
+(setq evil-shift-width 2)
+
+;; surround plugin
+(global-surround-mode 1)
+(surround-mode 1)
+
+;; evil leader
+(evil-leader/set-leader ",")
+
+;; Make escape really escape everything
+;; Clear insert state bindings.
+(setcdr evil-insert-state-map nil)
+;; Don't wait for any other keys after escape is pressed.
+(setq evil-esc-delay 0)
+
+;; Make sure escape gets back to normal state and quits things.
+(define-key evil-insert-state-map [escape] 'evil-normal-state)
+(define-key evil-visual-state-map [escape] 'evil-normal-state)
+(define-key evil-emacs-state-map [escape] 'evil-normal-state)
+(define-key minibuffer-local-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-ns-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-completion-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-must-match-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-map [escape] 'abort-recursive-edit)
+(define-key minibuffer-local-ns-map [escape] 'abort-recursive-edit)
+(define-key minibuffer-local-completion-map [escape] 'abort-recursive-edit)
+(define-key minibuffer-local-must-match-map [escape] 'abort-recursive-edit)
+(define-key minibuffer-local-isearch-map [escape] 'abort-recursive-edit)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Autocomplete setup ;;
@@ -152,6 +186,7 @@
 ;; Ruby
 (rvm-use-default)
 
+
 ;;;;;;;;;;;;;;;;;
 ;; Setup hooks ;;
 ;;;;;;;;;;;;;;;;;
@@ -172,9 +207,20 @@
           (lambda ()
             (ac-flyspell-workaround)))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Custom keybindings ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Typo rebindings and general shortcuts
+(evil-ex-define-cmd "W" 'evil-write)
+(evil-ex-define-cmd "b" 'switch-to-previous-buffer)
+
+;; keybindings that are in vim but not evil?
+(define-key evil-visual-state-map "O" 'exchange-point-and-mark)
+(define-key evil-visual-state-map "o" 'evil-visual-exchange-corners)
+;; make ctrl-u scroll up as is in vim
+(define-key evil-normal-state-map (kbd "C-u") 'evil-scroll-up)
 
 ;; ace-jump-mode
 (define-key evil-normal-state-map (kbd "+") 'evil-numbers/inc-at-pt)
@@ -197,7 +243,24 @@
 (defadvice evil-visual-block (before spc-for-char-jump activate)
   (define-key evil-motion-state-map (kbd "SPC") #'evil-ace-jump-char-mode))
 
+;; YAS bindings
+(evil-leader/set-key "SPC" (lambda ()
+                             (interactive)
+                             (evil-insert-state)
+                             (yas-insert-snippet))
 
+;; Magit
+(evil-leader/set-key
+  "gs"  'magit-status
+  "gh"  'magit-file-log
+  "gb"  'magit-blame-mode
+  "gg"  'vc-git-grep)
+
+;; move to next/prev git item with j/k in Magit mode
+(evil-add-hjkl-bindings magit-status-mode-map 'emacs
+  "K" 'magit-discard-item
+  "l" 'magit-key-mode-popup-logging
+  "h" 'magit-toggle-diff-refine-hunk)
 
 ;; Move-text keybindings (move text or region up/down)
 (global-set-key [M-k] 'move-text-up)
@@ -207,6 +270,8 @@
 (global-set-key (kbd "M-t") 'fiplr-find-file)
 
 ;; default mac shortcuts to save file and close window
+(define-key evil-normal-state-map (kbd "M-s") 'save-buffer)
+(define-key evil-insert-state-map (kbd "M-s") 'save-buffer)
 (global-set-key (kbd "M-s") 'save-buffer)
 (global-set-key (kbd "M-w") 'quit-window)
 
@@ -220,6 +285,21 @@
 (evil-make-intercept-map ac-completing-map)
 
 (ac-set-trigger-key "TAB") ; AFTER input prefix, press TAB key ASAP
+
+;; window management
+(evil-leader/set-key
+  "bl"  'switch-to-buffer
+  "bd"  'evil-delete-buffer
+  "d"   'kill-this-buffer
+  "k"   'kill-this-buffer)
+
+;; Misc Keybindings
+(evil-leader/set-key
+  "sv" 'split-window-horizontally
+  "sh" 'split-window-vertically
+  "v"  'find-user-init-file
+  "t"  'align-regexp
+  "u"  'undo-tree-visualize)
 
 ;; Autoindent on newline
 (global-set-key (kbd "RET") 'newline-and-indent)
