@@ -22,7 +22,7 @@
    slim-mode coffee-mode nginx-mode scala-mode2 rvm
    ;; editing
    move-text tagedit yasnippet smartparens auto-complete
-   emmet-mode 
+   emmet-mode
    flycheck-color-mode-line
    exec-path-from-shell
    buffer-move
@@ -63,32 +63,8 @@
 (require 'popwin)
 (require 'flycheck)
 (require 'flycheck-color-mode-line)
-(require 'midnight)
-
-;; require prelude packages
-;; (require 'prelude-c)
-;; (require 'prelude-clojure)
-;; (require 'prelude-coffee)
-;; (require 'prelude-common-lisp)
-(require 'prelude-css)
-(require 'prelude-emacs-lisp)
-;; (require 'prelude-erc)
-;; (require 'prelude-erlang)
-;; (require 'prelude-haskell)
-(require 'prelude-js)
-(require 'prelude-latex)
-(require 'prelude-lisp)
-(require 'prelude-markdown)
-;; (require 'prelude-mediawiki)
-(require 'prelude-org)
-;; (require 'prelude-perl)
-(require 'prelude-python)
-(require 'prelude-ruby)
-(require 'prelude-scala)
-(require 'prelude-scheme)
-(require 'prelude-scss)
-(require 'prelude-xml)
 (require 'saveplace)
+(require 'midnight)
 
 
 ;; Require custom defuns
