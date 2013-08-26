@@ -59,11 +59,9 @@
   (interactive)
   (find-file user-init-file))
 
-(defun switch-to-previous-buffer ()
-  "Switch to previously open buffer.
-Repeated invocations toggle between the two most recently open buffers."
-  (interactive)
-  (switch-to-buffer (other-buffer (current-buffer) 1)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Syntax Guessing of files ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Guess syntax based on file content. Very primitive and error prone
 (defvar guess-mode-syntax-rules
@@ -84,11 +82,179 @@ Repeated invocations toggle between the two most recently open buffers."
                     (setq match (intern (car rule)))))
           finally return match)))
 
+;;;;;;;;;;;;;;;;;;;;;;;
+;; Buffer management ;;
+;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun switch-to-previous-buffer ()
+  "Switch to previously open buffer.
+Repeated invocations toggle between the two most recently open buffers."
+  (interactive)
+  (switch-to-buffer (other-buffer (current-buffer) 1)))
+
+;; Narrowing and guessing new filetype
+(defun narrow-to-region-indirect (start end)
+  "Restrict editing in this buffer to the current region, indirectly."
+  (interactive "r")
+  (deactivate-mark)
+  (let ((buf (clone-indirect-buffer nil nil))
+        (mode (guess-mode-of-region start end)))
+    (with-current-buffer buf
+      (narrow-to-region start end)
+      (funcall mode))
+    (switch-to-buffer buf)))
+
+(evil-define-operator evil-narrow-indirect (beg end type)
+  "Indirectly narrow the region from BEG to END."
+  (interactive "<R>")
+  (evil-normal-state)
+  (narrow-to-region-indirect beg end))
+
 (defun guess-mode-of-region-and-switch (beg end)
   "Guess the mode of region and switch to it."
   (interactive "r")
   (let ((mode (guess-mode-of-region beg end)))
     (funcall mode)))
+
+;;;;;;;;;;;;;;;;;;;;;;;
+;; Text manipulation ;;
+;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun move-text-internal (arg)
+  (cond
+   ((and mark-active transient-mark-mode)
+    (if (> (point) (mark))
+        (exchange-point-and-mark))
+    (let ((column (current-column))
+          (text (delete-and-extract-region (point) (mark))))
+      (forward-line arg)
+      (move-to-column column t)
+      (set-mark (point))
+      (insert text)
+      (exchange-point-and-mark)
+      (setq deactivate-mark nil)))
+   (t
+    (beginning-of-line)
+    (when (or (> arg 0) (not (bobp)))
+      (forward-line)
+      (when (or (< arg 0) (not (eobp)))
+        (transpose-lines arg))
+      (forward-line -1)))))
+
+(defun move-text-down (arg)
+  "Move region (transient-mark-mode active) or current line
+  arg lines down."
+  (interactive "*p")
+  (move-text-internal arg))
+
+(defun move-text-up (arg)
+  "Move region (transient-mark-mode active) or current line
+  arg lines up."
+  (interactive "*p")
+  (move-text-internal (- arg)))
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Case conversion ;;
+;;;;;;;;;;;;;;;;;;;;;
+(defun mapcar-head (fn-head fn-rest list)
+  "Like MAPCAR, but applies a different function to the first element."
+  (if list
+      (cons (funcall fn-head (car list)) (mapcar fn-rest (cdr list)))))
+
+(defun split-name (s)
+  (split-string
+   (let ((case-fold-search nil))
+     (downcase
+      (replace-regexp-in-string "\\([a-z]\\)\\([A-Z]\\)" "\\1 \\2" s)))
+   "[^A-Za-z0-9]+"))
+
+(defun mixedcase  (s) (mapconcat 'capitalize (split-name s) ""))
+(defun underscore (s) (mapconcat 'downcase   (split-name s) "_"))
+(defun dasherize  (s) (mapconcat 'downcase   (split-name s) "-"))
+(defun colonize   (s) (mapconcat 'capitalize (split-name s) "::"))
+(defun uppercase  (s) (mapconcat 'upcase     (split-name s) "_"))
+(defun camelcase  (s) (mapconcat 'identity   (mapcar-head
+                                              '(lambda (word) (downcase word))
+                                              '(lambda (word) (capitalize (downcase word)))
+                                              (split-name s)) ""))
+
+(defun mixedcase-word-at-point ()
+      (interactive)
+      (let* ((case-fold-search nil)
+	     (beg (and (skip-chars-backward "[:alnum:]:_-") (point)))
+	     (end (and (skip-chars-forward  "[:alnum:]:_-") (point)))
+	     (txt (buffer-substring beg end))
+	     (cml (mixedcase txt)) )
+	(if cml (progn (delete-region beg end) (insert cml))) ))
+(defun underscore-word-at-point ()
+      (interactive)
+      (let* ((case-fold-search nil)
+	     (beg (and (skip-chars-backward "[:alnum:]:_-") (point)))
+	     (end (and (skip-chars-forward  "[:alnum:]:_-") (point)))
+	     (txt (buffer-substring beg end))
+	     (cml (underscore txt)) )
+	(if cml (progn (delete-region beg end) (insert cml))) ))
+(defun camelcase-word-at-point ()
+      (interactive)
+      (let* ((case-fold-search nil)
+	     (beg (and (skip-chars-backward "[:alnum:]:_-") (point)))
+	     (end (and (skip-chars-forward  "[:alnum:]:_-") (point)))
+	     (txt (buffer-substring beg end))
+	     (cml (camelcase txt)) )
+	(if cml (progn (delete-region beg end) (insert cml))) ))
+(defun dasherize-word-at-point ()
+      (interactive)
+      (let* ((case-fold-search nil)
+	     (beg (and (skip-chars-backward "[:alnum:]:_-") (point)))
+	     (end (and (skip-chars-forward  "[:alnum:]:_-") (point)))
+	     (txt (buffer-substring beg end))
+	     (cml (dasherize txt)) )
+	(if cml (progn (delete-region beg end) (insert cml))) ))
+(defun uppercase-word-at-point ()
+      (interactive)
+      (let* ((case-fold-search nil)
+	     (beg (and (skip-chars-backward "[:alnum:]:_-") (point)))
+	     (end (and (skip-chars-forward  "[:alnum:]:_-") (point)))
+	     (txt (buffer-substring beg end))
+	     (cml (uppercase txt)) )
+	(if cml (progn (delete-region beg end) (insert cml))) ))
+(defun colonize-word-at-point ()
+      (interactive)
+      (let* ((case-fold-search nil)
+	     (beg (and (skip-chars-backward "[:alnum:]:_-") (point)))
+	     (end (and (skip-chars-forward  "[:alnum:]:_-") (point)))
+	     (txt (buffer-substring beg end))
+	     (cml (colonize txt)) )
+	(if cml (progn (delete-region beg end) (insert cml))) ))
+
+;;;;;;;;;;;;;;;;;;;;;;;
+;; Window management ;;
+;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun rotate-windows ()
+  "Rotate your windows"
+  (interactive)
+  (cond ((not (> (count-windows)1))
+         (message "You can't rotate a single window!"))
+        (t
+         (setq i 1)
+         (setq numWindows (count-windows))
+         (while  (< i numWindows)
+           (let* (
+                  (w1 (elt (window-list) i))
+                  (w2 (elt (window-list) (+ (% i numWindows) 1)))
+
+                  (b1 (window-buffer w1))
+                  (b2 (window-buffer w2))
+
+                  (s1 (window-start w1))
+                  (s2 (window-start w2))
+                  )
+             (set-window-buffer w1  b2)
+             (set-window-buffer w2 b1)
+             (set-window-start w1 s2)
+             (set-window-start w2 s1)
+             (setq i (1+ i)))))))
 
 
 ;;;;;;;;;;;;;;;;;;
@@ -117,23 +283,7 @@ Repeated invocations toggle between the two most recently open buffers."
    (ace-jump-mode 5)
    (forward-char -1)))
 
-(defun narrow-to-region-indirect (start end)
-  "Restrict editing in this buffer to the current region, indirectly."
-  (interactive "r")
-  (deactivate-mark)
-  (let ((buf (clone-indirect-buffer nil nil))
-        (mode (guess-mode-of-region start end)))
-    (with-current-buffer buf
-      (narrow-to-region start end)
-      (funcall mode))
-    (switch-to-buffer buf)))
-
-(evil-define-operator evil-narrow-indirect (beg end type)
-  "Indirectly narrow the region from BEG to END."
-  (interactive "<R>")
-  (evil-normal-state)
-  (narrow-to-region-indirect beg end))
-
+;; Join lines
 (evil-define-operator evil-join-unfill (beg end)
   "Join the selected lines. Uses fill-region so that
 adaptive-fill-mode is effective when joining."

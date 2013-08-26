@@ -291,6 +291,12 @@
                              (evil-insert-state)
                              (yas-insert-snippet))
 
+;; Window management
+(define-key evil-normal-state-map (kbd "H-k") 'buf-move-up)
+(define-key evil-normal-state-map (kbd "H-j") 'buf-move-down)
+(define-key evil-normal-state-map (kbd "H-h") 'buf-move-left)
+(define-key evil-normal-state-map (kbd "H-l") 'buf-move-right)
+
 ;; Magit
 (evil-leader/set-key
   "gs"  'magit-status
@@ -305,8 +311,19 @@
   "h" 'magit-toggle-diff-refine-hunk)
 
 ;; Move-text keybindings (move text or region up/down)
-(global-set-key [M-k] 'move-text-up)
-(global-set-key [M-j] 'move-text-down)
+(define-key evil-normal-state-map (kbd "M-k") 'move-text-up)
+(define-key evil-normal-state-map (kbd "M-j") 'move-text-down)
+(define-key evil-visual-state-map (kbd "M-k") 'move-text-up)
+(define-key evil-visual-state-map (kbd "M-j") 'move-text-down)
+
+; Case conversion
+(evil-leader/set-key
+  "crm" 'mixedcase-word-at-point
+  "crc" 'camelcase-word-at-point
+  "crs" 'underscore-word-at-point
+  "cru" 'uppercase-word-at-point
+  "crd" 'dasherize-word-at-point
+  "cr:" 'colonize-word-at-point)
 
 (global-set-key (kbd "C-c f") 'simp-project-find-file)
 (global-set-key (kbd "M-t") 'fiplr-find-file)
