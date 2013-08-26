@@ -14,6 +14,11 @@
    nil 'fullscreen
    (when (not (frame-parameter nil 'fullscreen)) 'fullboth)))
 
+(defmacro rename-modeline (package-name mode new-name)
+  `(eval-after-load ,package-name
+     '(defadvice ,mode (after rename-modeline activate)
+        (setq mode-name ,new-name))))
+
 ;; In a region, increment the first numbers in each row
 ;; to be ascending from top to bottom
 (defun inc-num-region (p m)

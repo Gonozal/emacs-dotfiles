@@ -1,4 +1,5 @@
 (add-to-list 'load-path "~/.emacs.d/personal-packages/fiplr")
+(add-to-list 'load-path "/Users/arne/Development/Scala/ensime/dist/elisp/")
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 
 (prelude-ensure-module-deps
@@ -49,6 +50,7 @@
 (require 'move-text)
 (require 'browse-kill-ring)
 (require 'scala-mode2)
+(require 'ensime)
 (require 'yasnippet)
 (require 'restclient)
 (require 'popwin)
@@ -86,6 +88,21 @@
 ;;;;;;;;;;;;;;;
 ;; Setup GUI ;;
 ;;;;;;;;;;;;;;;
+
+;; Set Font Face
+(set-face-attribute 'mode-line nil :box nil
+                    :family "Source Code Pro for Powerline"
+                    :height 100 :weight 'light)
+(set-face-attribute 'default nil
+                    :family "Source Code Pro for Powerline"
+                    :height 100 :weight 'light)
+(set-face-attribute 'mode-line-inactive nil :box nil)
+
+(load-theme 'base16-default) ;; Load the best theme ever
+(powerline-default-theme)    ;; load powerline
+(setq scroll-margin 4)       ;; Sane cursor and window movements
+(scroll-bar-mode -1)         ;; No scrollbars, thank you
+(global-diff-hl-mode)        ;; show visual VCS diffs
 
 (browse-kill-ring-default-keybindings) ;; load defult keybindings for killring browser
 (ac-config-default)                    ;; load default autocomplete config
@@ -149,6 +166,17 @@
 (define-key minibuffer-local-must-match-map [escape] 'abort-recursive-edit)
 (define-key minibuffer-local-isearch-map [escape] 'abort-recursive-edit)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Diminish modeline names ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(rename-modeline "js2-mode" js2-mode "JS2")
+
+(diminish 'emmet-mode "")
+(diminish 'flyspell-mode " ✓ ")
+(diminish 'whitespace-mode " ☐ ")
+(diminish 'undo-tree-mode " ⤺ ")
+(diminish 'projectile-mode "")
+(diminish 'tagedit-mode "<>")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Autocomplete setup ;;
@@ -208,6 +236,9 @@
 ;;;;;;;;;;;;;;;;;
 ;; Setup hooks ;;
 ;;;;;;;;;;;;;;;;;
+
+;; activate ensime in scala files
+(add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
 
 ;; disabled linum mode in org-mode
 (add-hook 'org-mode-hook (lambda () (linenum-mode 0)))
