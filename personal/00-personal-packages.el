@@ -3,8 +3,9 @@
 ;;; Commentary:
 
 ;;; Code:
-(add-to-list 'load-path "~/.emacs.d/personal-packages/fiplr")
-(add-to-list 'load-path "/Users/arne/Development/Scala/ensime/src/main/elisp/")
+(add-to-list 'load-path "~/.emacs.d/personal-packages/fiplr/")
+(add-to-list 'load-path "~/Development/Scala/ensime/src/main/elisp/")
+(add-to-list 'load-path "~/.emacs.d/personal/")
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 
 (prelude-ensure-module-deps
@@ -12,14 +13,16 @@
    ;; evil and plugins
    evil surround evil-numbers evil-nerd-commenter evil-leader
    ;; javascript
-   js2-mode js2-refactor ac-js2 tern
+   js2-mode js2-refactor ac-js2 tern tern-auto-complete
    ;; grep etc
    ag wgrep wgrep-ag
    ;; visual
    diff-hl linum-relative rainbow-delimiters browse-kill-ring popwin
    pos-tip
+   ;; ruby
+   rvm robe rinari ruby-electric ruby-block
    ;; misc language support
-   slim-mode coffee-mode nginx-mode scala-mode2 rvm
+   slim-mode coffee-mode nginx-mode scala-mode2
    ;; editing
    move-text tagedit yasnippet smartparens auto-complete
    emmet-mode
@@ -28,9 +31,7 @@
    buffer-move
    restclient
    grizzl
-   midnight
-   )
- )
+   midnight))
 
 
 (require 'rvm)
@@ -41,12 +42,17 @@
 (require 'powerline)
 (require 'auto-complete)
 (require 'auto-complete-config)
+(require 'rinari)
+(require 'robe)
+(require 'ruby-block)
 (require 'js2-mode)
 (require 'js2-refactor)
 (require 'tern)
 (require 'ac-js2)
 (require 'emmet-mode)
+(require 'tagedit)
 (require 'diff-hl)
+(require 'fiplr)
 (require 'ag)
 (require 'wgrep-ag)
 (require 'linum-relative)
@@ -63,8 +69,10 @@
 (require 'popwin)
 (require 'flycheck)
 (require 'flycheck-color-mode-line)
+(require 'multiple-cursors)
 (require 'saveplace)
 (require 'midnight)
+(require 'ruby-electric)
 
 
 ;; Require custom defuns
@@ -78,11 +86,13 @@
 (set-face-attribute 'mode-line nil :box nil
                     :family "Source Code Pro for Powerline"
                     :height 100 :weight 'light)
+(set-face-attribute 'mode-line-inactive nil :box nil)
 (set-face-attribute 'default nil
                     :family "Source Code Pro for Powerline"
                     :height 100 :weight 'light)
-(set-face-attribute 'mode-line-inactive nil :box nil)
 
+(disable-theme 'molokai)
+(disable-theme 'zenburn)
 (load-theme 'base16-default) ;; Load the best theme ever
 (powerline-default-theme)    ;; load powerline
 (setq scroll-margin 4)       ;; Sane cursor and window movements
@@ -191,6 +201,9 @@
 ;; Setup evil ;;
 ;;;;;;;;;;;;;;;;
 
+;; were using evil, no need for keychoards!
+(key-chord-mode -1)
+
 ;; General setup
 (evil-mode nil)
 (global-evil-leader-mode 1)
@@ -225,6 +238,35 @@
 (define-key minibuffer-local-must-match-map [escape] 'abort-recursive-edit)
 (define-key minibuffer-local-isearch-map [escape] 'abort-recursive-edit)
 
+;; enter emacs state in certain modes
+(loop for (mode . state) in
+      '(
+        (Info-mode . emacs)
+        (term-mode . emacs)
+        ;; (log-edit-mode . emacs)
+        (inf-ruby-mode . emacs)
+        ;; (yari-mode . emacs)
+        (erc-mode . emacs)
+        (gud-mode . emacs)
+        (help-mode . emacs)
+        (eshell-mode . emacs)
+        (shell-mode . emacs)
+        ;;(message-mode . emacs)
+        ;; (magit-log-edit-mode . emacs)
+        (fundamental-mode . emacs)
+        (gtags-select-mode . emacs)
+        (weibo-timeline-mode . emacs)
+        (weibo-post-mode . emacs)
+        (diff-mode . emacs)
+        (sr-mode . emacs)
+        (dired-mode . emacs)
+        (compilation-mode . emacs)
+        (speedbar-mode . emacs)
+        ;; (magit-commit-mode . normal)
+        )
+      do (evil-set-initial-state mode state))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Diminish modeline names ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -237,11 +279,12 @@
 (diminish 'projectile-mode "")
 (diminish 'tagedit-mode "<>")
 
-;;;;;;;;;;;;;;;;;;;;;;;;
-;; Autocomplete setup ;;
-;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;; auto-complete setup ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (global-auto-complete-mode t)
+(setq ac-use-menu-map t)
 (setq ac-expand-on-auto-complete nil)
 (setq ac-dwim nil) ; To get pop-ups with docs even if a word is uniquely completed
 
@@ -250,25 +293,25 @@
                 sass-mode yaml-mode csv-mode espresso-mode haskell-mode
                 html-mode nxml-mode sh-mode smarty-mode clojure-mode
                 lisp-mode textile-mode markdown-mode tuareg-mode
-                js2-mode css-mode less-css-mode coffee-mode scss-mode
+                js2-mode js3-mode css-mode less-css-mode coffee-mode scss-mode
                 slim-mode))
   (add-to-list 'ac-modes mode))
 
 (set-default 'ac-sources
              '(ac-source-abbrev
                ac-source-dictionary
-               ac-source-yasnippet
                ac-source-words-in-buffer
                ac-source-words-in-same-mode-buffers
                ac-source-semantic))
 
 (setq dabbrev-friend-buffer-function 'sanityinc/dabbrev-friend-buffer)
 
-
 (setq ac-delay 0.05)
 (setq ac-auto-show-menu 0.1)
 (setq ac-use-fuzzy 1)
 (ac-config-default)
+(ac-set-trigger-key "TAB")
+(ac-set-trigger-key "<tab>")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -277,6 +320,10 @@
 
 ;; Ruby
 (rvm-use-default)
+(setq ruby-deep-indent-paren nil)
+(ruby-block-mode t)
+(setq ruby-block-highlight-toggle t)
+(custom-set-variables '(ruby-electric-expand-delimiters-list '(?\|)))
 
 ;; html, xml etc
 (tagedit-add-paredit-like-keybindings)
@@ -305,7 +352,22 @@
 ;; JS refactoring
 (js2r-add-keybindings-with-prefix "C-c C-m")
 
-;; Use lambda for anonymous functions
+(defun javascript-unicode ()
+  (interactive)
+  (substitute-patterns-with-unicode
+   (list (cons "\\(function\\) *(" 'function)
+         (cons "function *([^)]*) *{ *\\(return\\) " 'left-arrow)
+         (cons "\\(<-\\)" 'left-arrow)
+         (cons "\\(->\\)" 'right-arrow)
+         (cons "\\(Math.sqrt\\)" 'square-root)
+         (cons "\\(&&\\)" 'logical-and)
+         (cons "\\(||\\)" 'logical-or)
+         (cons "\\<\\(not\\)\\>" 'logical-neg)
+         (cons "\\(>\\)\\[^=\\]" 'greater-than)
+         (cons "\\(<\\)\\[^=\\]" 'less-than)
+         (cons "\\(>=\\)" 'greater-than-or-equal-to)
+         (cons "\\(<=\\)" 'less-than-or-equal-to) )))
+
 (font-lock-add-keywords
  'js2-mode `(("\\(function\\) *("
               (0 (progn (compose-region (match-beginning 1)
@@ -358,6 +420,35 @@
 ;; Setup hooks ;;
 ;;;;;;;;;;;;;;;;;
 
+;; fontlocking
+(add-hook 'js2-mode-hook 'javascript-unicode)
+
+;; multiple cursors
+(add-hook 'multiple-cursors-mode-enabled-hook
+          'my-mc-evil-switch-to-insert-state)
+
+(add-hook 'multiple-cursors-mode-disabled-hook
+          'my-mc-evil-back-to-previous-state)
+
+(add-hook 'rectangular-region-mode-hook 'my-rrm-evil-switch-state)
+
+;;; autopair messes with multiple cursors, so disable it
+;; (add-hook 'multiple-cursors-mode-enabled-hook (lambda ()
+;;                                                 (autopair-mode -1)))
+;; (add-hook 'multiple-cursors-mode-disabled-hook (lambda ()
+;;                                                 (autopair-mode t)))
+
+;; ruby
+(add-hook 'ruby-mode-hook #'(lambda () (smart-parens-mode -1)))
+(add-hook 'ruby-mode-hook (lambda () (ruby-electric-mode t)))
+
+;; activate robe
+(add-hook 'ruby-mode-hook 'robe-mode)
+(add-hook 'robe-mode-hook
+          (lambda ()
+            (add-to-list 'ac-sources 'ac-source-robe)
+            (setq completion-at-point-functions '(auto-complete))))
+
 ;; ido vertical
 (add-hook 'ido-setup-hook 'ido-define-keys)
 (add-hook 'ido-minibuffer-setup-hook 'ido-disable-line-truncation)
@@ -398,6 +489,9 @@
 ;; Typo rebindings and general shortcuts
 (evil-ex-define-cmd "W" 'evil-write)
 (evil-ex-define-cmd "b" 'switch-to-previous-buffer)
+
+;; Why the hell is Y yank whole line anyways?!
+(define-key evil-normal-state-map "Y" (kbd "y$"))
 
 ;; keybindings that are in vim but not evil?
 (define-key evil-visual-state-map "O" 'exchange-point-and-mark)
@@ -450,11 +544,27 @@
 (defadvice evil-visual-block (before spc-for-char-jump activate)
   (define-key evil-motion-state-map (kbd "SPC") #'evil-ace-jump-char-mode))
 
+;; multiple cursors
+(evil-leader/set-key
+  "ma" 'mc/mark-all-like-this-in-defun
+  "mw" 'mc/mark-all-words-like-this-in-defun
+  "ms" 'mc/mark-all-symbols-like-this-in-defun
+  "md" 'mc/mark-all-like-this-dwim)
+
+(global-set-key (kbd "M-+") 'mc/mark-next-like-this)
+(global-set-key (kbd "M--") 'mc/mark-previous-like-this)
+(global-set-key (kbd "C-c M-+") 'mc/mark-all-like-this)
+
+;; expand region
+(define-key evil-visual-state-map "ar" 'er/expand-region)
+(define-key evil-visual-state-map "ir" 'er/contract-region)
+(evil-leader/set-key "ar" 'er/expand-region)
+
 ;; YAS bindings
 (evil-leader/set-key "SPC" (lambda ()
                              (interactive)
                              (evil-insert-state)
-                             (yas-insert-snippet))
+                             (yas-insert-snippet)))
 
 ;; Window management
 (define-key evil-normal-state-map (kbd "H-k") 'buf-move-up)
@@ -501,7 +611,7 @@
 
 (global-set-key (kbd "M-RET") 'toggle-fullscreen)
 
-;; Autocomplete
+;; Auto-complete
 (define-key ac-completing-map (kbd "C-n") 'ac-next)
 (define-key ac-completing-map (kbd "C-p") 'ac-previous)
 (define-key ac-completing-map (kbd "C-g") 'ac-stop)
@@ -509,8 +619,6 @@
 (evil-make-intercept-map ac-completing-map)
 
 ;; More intuitive ido key bindings now that ido is vertical
-(define-key ido-completion-map (kbd "C-n") 'ido-next-match)
-(define-key ido-completion-map (kbd "C-p") 'ido-prev-match)
 
 (ac-set-trigger-key "TAB") ; AFTER input prefix, press TAB key ASAP
 

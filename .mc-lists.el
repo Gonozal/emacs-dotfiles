@@ -9,4 +9,6 @@
 
 (setq mc/cmds-to-run-once
       '(
+        evil-backward-char
+        evil-normal-state
         ))

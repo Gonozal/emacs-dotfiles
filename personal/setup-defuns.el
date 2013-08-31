@@ -71,6 +71,99 @@
   (find-file user-init-file))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Fontlock and composition ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Unicode symbols in buffer
+(defun unicode-symbol (name)
+  "Translate a symbolic name for a Unicode character -- e.g., LEFT-ARROW
+or GREATER-THAN into an actual Unicode character code."
+  (case name
+    ('right-triangle #X22b3)
+    ('left-triangle #X22b2)
+    ('left-arrow #X2190)
+    ('up-arrow #X2191)
+    ('right-arrow #X2192)
+    ('down-arrow #X2193)
+    ('right-double-arrow #X21D2)
+    ('left-double-arrow #X21D0)
+    ('double-vertical-bar #X2551)
+    ('equal #X003d)
+    ('not-equal #X2260)
+    ('much-less-than #X226a)
+    ('much-greater-than #X226b)
+    ('less-than #X003c)
+    ('greater-than #X003e)
+    ('less-than-or-equal-to #X2264)
+    ('greater-than-or-equal-to #X2265)
+    ('almost-equal-to #X2248)
+    ('strictly-equal-to #X2264)
+    ('logical-and #X22C0)
+    ('logical-or #X22C1)
+    ('logical-neg #X00AC)
+    ('nil #X2205)
+    ('function #X0192)
+    ('horizontal-ellipsis #X2026)
+    ('double-exclamation #X203C)
+    ('prime #X2032)
+    ('double-prime #X2033)
+    ('for-all #X2200)
+    ('there-exists #X2203)
+    ('element-of #X2208)
+    ('square-root #X221A)
+    ('squared #X00B2)
+    ('cubed #X00B3)
+    ('lambda #X03BB)
+    ('alpha #X03B1)
+    ('beta #X03B2)
+    ('gamma #X03B3)
+    ('delta #X03B4)))
+
+(defun substitute-pattern-with-unicode (pattern symbol)
+  "Add a font lock hook to replace the matched part of PATTERN with the
+Unicode symbol SYMBOL looked up with UNICODE-SYMBOL."
+  (interactive)
+  (font-lock-add-keywords
+   nil `((,pattern
+          (0 (progn (compose-region (match-beginning 1) (match-end 1)
+                                    ,(unicode-symbol symbol)
+                                    'decompose-region)
+                    nil))))))
+
+(defun substitute-patterns-with-unicode (patterns)
+  "Call SUBSTITUTE-PATTERN-WITH-UNICODE repeatedly."
+  (mapcar #'(lambda (x)
+              (substitute-pattern-with-unicode (car x)
+                                               (cdr x)))
+          patterns))
+
+;;;;;;;;;;;;;;;;;;;;;;
+;; Multiple Cursors ;;
+;;;;;;;;;;;;;;;;;;;;;;
+
+(defvar my-mc-evil-previous-state nil)
+
+(defun my-mc-evil-switch-to-insert-state ()
+  (when (and (bound-and-true-p evil-mode)
+             (not (memq evil-state '(insert emacs))))
+    (setq my-mc-evil-previous-state evil-state)
+    (evil-insert 1)))
+
+(defun my-mc-evil-back-to-previous-state ()
+  (when my-mc-evil-previous-state
+    (unwind-protect
+        (case my-mc-evil-previous-state
+          ((normal visual) (evil-force-normal-state))
+          (t (message "Don't know how to handle previous state: %S"
+                      my-mc-evil-previous-state)))
+      (setq my-mc-evil-previous-state nil))))
+
+(defun my-rrm-evil-switch-state ()
+  (if rectangular-region-mode
+      (my-mc-evil-switch-to-insert-state)
+    ;; (my-mc-evil-back-to-previous-state)  ; does not work...
+    (setq my-mc-evil-previous-state nil)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Syntax Guessing of files ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -131,7 +224,8 @@ Repeated invocations toggle between the two most recently open buffers."
 (defun ido-disable-line-truncation ()
   (set (make-local-variable 'truncate-lines) nil))
 (defun ido-define-keys () ;; C-n/p is more intuitive in vertical layout
-  )
+  (define-key ido-completion-map (kbd "C-n") 'ido-next-match)
+  (define-key ido-completion-map (kbd "C-p") 'ido-prev-match))
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; File operations ;;
