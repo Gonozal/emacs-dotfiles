@@ -25,6 +25,13 @@
   (save-excursion
     (shell-command-on-region (mark) (point) "python -m json.tool" (buffer-name) t)))
 
+;; kill line backwards
+(defun backward-kill-line (arg)
+  "kill arg lines backward."
+  (interactive "p")
+  (kill-line (- 1 arg))
+  (indent-according-to-mode))
+
 ;; In a region, increment the first numbers in each row
 ;; to be ascending from top to bottom
 (defun inc-num-region (p m)
@@ -63,6 +70,54 @@
              (add-hook 'post-command-hook #'evil-visual-post-command nil t)
              (set-mark old-mark))
          (push-mark old-mark)))))
+
+;;; C-g as general purpose escape key sequence.
+(defun my-esc (prompt)
+  "Functionality for escaping generally.  Includes exiting Evil insert state and C-g binding. "
+  (cond
+   ;; If we're in one of the Evil states that defines [escape] key, return [escape] so as
+   ;; Key Lookup will use it.
+   ((or (evil-insert-state-p) (evil-normal-state-p) (evil-replace-state-p) (evil-visual-state-p)) [escape])
+   ;; This is the best way I could infer for now to have C-c work during evil-read-key.
+   ;; Note: As long as I return [escape] in normal-state, I don't need this.
+   ;;((eq overriding-terminal-local-map evil-read-key-map) (keyboard-quit) (kbd ""))
+   (t (kbd "C-g"))))
+
+;; evil anpassungen
+
+(evil-define-motion surround-line (count)
+  "Move COUNT - 1 lines down but return exclusive character motion."
+  :type exclusive
+  (let ((beg (line-beginning-position)))
+    (evil-line count)
+    (end-of-line)
+    (let ((range (evil-range beg (point) 'exclusive)))
+      (evil-expand-range range)
+      range)))
+
+;; Dispatcher function in Operator-Pending state.
+;; "cs" calls `surround-change', "ds" calls `surround-delete',
+;; and "ys" calls `surround-region'.
+(evil-define-command surround-edit (operation)
+  "Edit the surrounding delimiters represented by CHAR.
+If OPERATION is `change', call `surround-change'.
+if OPERATION is `surround', call `surround-region'.
+Otherwise call `surround-delete'."
+  (interactive
+   (progn
+     ;; abort the calling operator
+     (setq evil-inhibit-operator t)
+     (list (assoc-default evil-this-operator
+                          '((evil-change . change)
+                            (evil-delete . delete))))))
+  (cond
+   ((eq operation 'change)
+    (call-interactively 'surround-change))
+   ((eq operation 'delete)
+    (call-interactively 'surround-delete))
+   (t
+    (define-key evil-operator-shortcut-map "s" 'surround-line)
+    (call-interactively 'surround-region))))
 
 ;; Open user init file (init.el in .emacs.d directory)
 (defun find-user-init-file ()

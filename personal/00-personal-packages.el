@@ -3,30 +3,51 @@
 ;;; Commentary:
 
 ;;; Code:
+(server-start)
+
 (add-to-list 'load-path "~/.emacs.d/personal-packages/fiplr/")
+(add-to-list 'load-path "~/.emacs.d/personal-packages/fuzzy-el/")
+(add-to-list 'load-path "~/.emacs.d/personal-packages/popup-el/")
 (add-to-list 'load-path "~/Development/Scala/ensime/src/main/elisp/")
+(add-to-list 'load-path "~/.emacs.d/personal-packages/evil-org-mode/")
+(add-to-list 'load-path "~/.emacs.d/personal-packages/org-mode/lisp")
+(add-to-list 'load-path "~/.emacs.d/personal-packages/org-mode/lisp/contrib/lisp")
 (add-to-list 'load-path "~/.emacs.d/personal/")
+(add-to-list 'load-path "~/.emacs.d/personal/evil/")
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+
+(add-to-list 'exec-path "~/.cabal/bin")
+
+(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
 
 (prelude-ensure-module-deps
  '(
    ;; evil and plugins
-   evil surround evil-numbers evil-nerd-commenter evil-leader
+   evil surround evil-numbers evil-nerd-commenter evil-leader evil-paredit
    ;; javascript
    js2-mode js2-refactor ac-js2 tern tern-auto-complete
    ;; grep etc
    ag wgrep wgrep-ag
    ;; visual
    diff-hl linum-relative rainbow-delimiters browse-kill-ring popwin
+   highlight-indentation
    pos-tip
    ;; ruby
    rvm robe rinari ruby-electric ruby-block
+   ;; Latex AcuTex
+   auctex ac-math outline-magic
+   ;; clojure
+   nrepl ac-nrepl
    ;; misc language support
    slim-mode coffee-mode nginx-mode scala-mode2
+   ;; haskell
+   ghc hi2
+   ;; html
+   evil-matchit
    ;; editing
    move-text tagedit yasnippet smartparens auto-complete
    emmet-mode
-   flycheck-color-mode-line
+   ;; flycheck-color-mode-line
    exec-path-from-shell
    buffer-move
    restclient
@@ -38,10 +59,13 @@
 (require 'evil)
 (require 'evil-numbers)
 (require 'evil-leader)
+(require 'evil-matchit)
 (require 'surround)
 (require 'powerline)
 (require 'auto-complete)
 (require 'auto-complete-config)
+(require 'popup)
+(require 'fuzzy)
 (require 'rinari)
 (require 'robe)
 (require 'ruby-block)
@@ -68,15 +92,22 @@
 (require 'restclient)
 (require 'popwin)
 (require 'flycheck)
-(require 'flycheck-color-mode-line)
+;; (require 'flycheck-color-mode-line)
 (require 'multiple-cursors)
 (require 'saveplace)
 (require 'midnight)
 (require 'ruby-electric)
+(require 'org)
+(require 'ac-ghc-mod)
+(require 'ox-latex)
+(require 'evil-org)
+(require 'evil-mode-line-color)
 
+(autoload 'ghc-init "ghc" nil t)
 
 ;; Require custom defuns
 (require 'setup-defuns)
+; (require 'evil-custom-maps)
 
 ;;;;;;;;;;;;;;;
 ;; Setup GUI ;;
@@ -85,25 +116,28 @@
 ;; Set Font Face
 (set-face-attribute 'mode-line nil :box nil
                     :family "Source Code Pro for Powerline"
-                    :height 100 :weight 'light)
+                    :height 100 :weight 'normal)
 (set-face-attribute 'mode-line-inactive nil :box nil)
 (set-face-attribute 'default nil
                     :family "Source Code Pro for Powerline"
-                    :height 100 :weight 'light)
+                    :height 100 :weight 'normal)
 
 (disable-theme 'molokai)
 (disable-theme 'zenburn)
-(load-theme 'base16-default) ;; Load the best theme ever
-(powerline-default-theme)    ;; load powerline
-(setq scroll-margin 4)       ;; Sane cursor and window movements
-(scroll-bar-mode -1)         ;; No scrollbars, thank you
-(global-diff-hl-mode)        ;; show visual VCS diffs
+(setq solarized-distinct-fringe-background t)
+;; powerline solarized customization
+;; (load-theme 'base16-default t)  ; Load the best theme ever
+(load-theme 'solarized-light t) ; Load the best theme ever
+(powerline-default-theme)        ; load powerline
+(setq scroll-margin 4)          ; Sane cursor and window movements
+(scroll-bar-mode -1)            ; No scrollbars, thank you
+(global-diff-hl-mode)           ; show visual VCS diffs
+(global-rainbow-delimiters-mode)
 
-(browse-kill-ring-default-keybindings) ;; load defult keybindings for killring browser
-(ac-config-default)                    ;; load default autocomplete config
-(global-linum-mode)                    ;; line numbering everywhere
-(yas-global-mode 1)                    ;; use snippets everywhere
-(popwin-mode 1)                        ;; use popup windows instead of idle windows
+(browse-kill-ring-default-keybindings) ; load defult keybindings for killring browser
+(global-linum-mode)                    ; line numbering everywhere
+(yas-global-mode 1)                    ; use snippets everywhere
+(popwin-mode 1)                        ; use popup windows instead of idle windows
 
 ;; silence emacs, damnit
 (setq ring-bell-function 'ignore)
@@ -131,6 +165,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (setq whitespace-line-column 80) ;; limit line length
+(setq-default fill-column 80) ;; limit line length
 (setq whitespace-style '(face empty trailing lines-tail))
 
 ;;;; Tab settings ;;;;
@@ -187,8 +222,8 @@
               " [Matched]" " [Not readable]" " [Too big]" " [Confirm]")))
 
 ;; load flycheck
-(eval-after-load "flycheck"
-  '(add-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode))
+;; (eval-after-load "flycheck"
+;;   '(add-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode))
 
 ;; projectile
 (projectile-global-mode)
@@ -202,11 +237,12 @@
 ;;;;;;;;;;;;;;;;
 
 ;; were using evil, no need for keychoards!
-(key-chord-mode -1)
+(key-chord-mode 1)
 
 ;; General setup
 (evil-mode nil)
 (global-evil-leader-mode 1)
+(global-evil-matchit-mode)
 (evil-mode 1)
 (setq evil-shift-width 2)
 
@@ -215,7 +251,7 @@
 (surround-mode 1)
 
 ;; evil leader
-(evil-leader/set-leader ",")
+(evil-leader/set-leader "<SPC>")
 
 ;; Make escape really escape everything
 ;; Clear insert state bindings.
@@ -287,6 +323,15 @@
 (setq ac-use-menu-map t)
 (setq ac-expand-on-auto-complete nil)
 (setq ac-dwim nil) ; To get pop-ups with docs even if a word is uniquely completed
+(setq ac-delay 0.05)
+(setq ac-auto-show-menu 0.1)
+(setq ac-use-fuzzy 1)
+(setq ac-quick-help-delay 1)
+(setq ac-quick-help-height 60)
+
+(ac-set-trigger-key "TAB")
+(ac-set-trigger-key "<tab>")
+(define-key ac-completing-map "\t" 'ac-complete)
 
 ;; extra modes auto-complete must support
 (dolist (mode '(magit-log-edit-mode log-edit-mode org-mode text-mode haml-mode
@@ -299,19 +344,15 @@
 
 (set-default 'ac-sources
              '(ac-source-abbrev
+               ac-source-yasnippet
                ac-source-dictionary
                ac-source-words-in-buffer
                ac-source-words-in-same-mode-buffers
                ac-source-semantic))
 
-(setq dabbrev-friend-buffer-function 'sanityinc/dabbrev-friend-buffer)
-
-(setq ac-delay 0.05)
-(setq ac-auto-show-menu 0.1)
-(setq ac-use-fuzzy 1)
 (ac-config-default)
-(ac-set-trigger-key "TAB")
-(ac-set-trigger-key "<tab>")
+
+(setq dabbrev-friend-buffer-function 'sanityinc/dabbrev-friend-buffer)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -328,6 +369,29 @@
 ;; html, xml etc
 (tagedit-add-paredit-like-keybindings)
 (tagedit-add-experimental-features)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Haskell IDE configuration ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(setq haskell-stylish-on-save t)
+(define-key haskell-mode-map (kbd "M-s") 'haskell-mode-save-buffer)
+(define-key haskell-mode-map (kbd "M-t") nil)
+(push "*GHC Info*" popwin:special-display-config)
+
+;; evil haskell keybindints
+(evil-leader/set-key-for-mode 'haskell-mode
+  "hat" (lambda ()
+         (interactive)
+         (universal-argument)
+         (inferior-haskell-type)
+         (execute-kbd-macro (vector 'return)))
+  "ht" 'inferior-haskell-type
+  "hl" 'inferior-haskell-load-file
+  "hi" 'inferior-haskell-info
+  "hr" 'inferior-haskell-reload-file
+  )
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Javascript IDE configuration ;;
@@ -389,6 +453,52 @@
         (require 'tern-auto-complete)
         (tern-ac-setup))))
 
+
+;;;;;;;;;;;;;;;;;;;;
+;; LATEX / AUCTEX ;;
+;;;;;;;;;;;;;;;;;;;;
+(setq TeX-auto-save t)
+(setq TeX-parse-self t)
+(setq-default TeX-master nil)
+
+(add-hook 'LaTeX-mode-hook 'visual-line-mode)
+(add-hook 'LaTeX-mode-hook 'flyspell-mode)
+(add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
+
+(add-hook 'LaTeX-mode-hook 'turn-on-reftex)
+(setq reftex-plug-into-AUCTeX t)
+
+;; compile to pdf
+(setq TeX-PDF-mode t)
+
+(setq TeX-view-program-selection '((output-pdf "PDF Viewer")))
+(setq TeX-view-program-lisT
+      '(("PDF Viewer" "/Applications/Skim.app/Contents/SharedSupport/displayline -b -g %n %o %b")))
+;; (setq TeX-view-program-list
+;;       '(("PDF Viewer" "open %o")))
+
+
+;; make auto-complete aware of `latex-mode`
+(add-to-list 'ac-modes 'latex-mode)
+
+;; add ac-sources to default ac-sources
+(defun ac-latex-mode-setup ()
+  (setq ac-sources
+     (append '(ac-source-math-unicode
+               ac-source-math-latex
+               c-source-latex-commands)
+               ac-sources)))
+
+(font-lock-add-keywords
+   'latex-mode
+   `((,(concat "^\\s-*\\\\\\("
+               "\\(documentclass\\|\\(sub\\)?section[*]?\\)"
+               "\\(\\[[^]% \t\n]*\\]\\)?{[-[:alnum:]_ ]+"
+               "\\|"
+               "\\(begin\\|end\\){document"
+               "\\)}.*\n?")
+      (0 'your-face append))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; File to language mappings ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -398,19 +508,90 @@
 (setq auto-mode-alist  (cons '("Rakefile$" . ruby-mode) auto-mode-alist))
 (add-to-list 'auto-mode-alist '("\\.rake$" . ruby-mode))
 
+;; org mode
+(setq org-export-in-background t)
+
+(add-to-list 'auto-mode-alist '("\\. org \\'" . org-mode))
+
+;; KOMA Script
+(add-to-list 'org-latex-classes
+             '("koma-article"
+               "\\documentclass{scrartcl}
+\\usepackage[T1]{fontenc}
+\\usepackage{libertine}
+\\renewcommand*\\oldstylenums[1]{{\\fontfamily{fxlj}\\selectfont #1}}
+\\usepackage{lmodern}
+\\usepackage{xunicode}
+\\usepackage{xltxtra}
+\\usepackage[xetex]{hyperref}
+\\usepackage{geometry}
+\\geometry{a4paper, textwidth=6.5in, textheight=10in, marginparsep=7pt, marginparwidth=.6in}
+ [NO-DEFAULT-PACKAGES]
+ [NO-PACKAGES]"
+
+               ("\\section{%s}" . "\\section*{%s}")
+               ("\\subsection{%s}" . "\\subsection*{%s}")
+               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+               ("\\paragraph{%s}" . "\\paragraph*{%s}")
+               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+
+;; Tell org mode about xelatex
+;;; XeLaTeX customisations
+;; remove "inputenc" from default packages as it clashes with xelatex
+(setf org-latex-default-packages-alist
+      (remove '("AUTO" "inputenc" t) org-latex-default-packages-alist))
+
+(add-to-list 'org-latex-packages-alist '("" "xltxtra" t))
+
+;; org to latex customisations, -shell-escape needed for minted
+(setq org-latex-to-pdf-process          ; for regular export
+      '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "xelatex -shell-escape -interaction nonstopmode -output-directory %o
+%f")
+      org-export-dispatch-use-expert-ui t ; non-intrusive export dispatch
+      org-latex-pdf-process           ; for experimental org-export
+      '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "xelatex -shell-escape -interaction nonstopmode -output-directory %o
+%f"))
+
+;; Restore window on quit agenda
+(setq org-agenda-restore-windows-after-quit t)
+
+;; add the org file link format to the iimage mode regex
+;; (add-to-list 'iimage-mode-image-regex-alist
+;;             (cons (concat "\\[\\[file:\\(~?" iimage-mode-image-filename-regex "\\)\\]") 1))
+
+;; function to setup images for display on load
+(defun org-turn-on-iimage-in-org ()
+  "Display images in your org file."
+  (interactive)
+  (clear-image-cache nil)
+  (turn-on-iimage-mode)
+  (set-face-underline-p 'org-link nil))
+
+;; function to toggle images in a org bugger
+(defun org-toggle-iimage-in-org ()
+  "Display images in your org file."
+  (interactive)
+  (if (face-underline-p 'org-link)
+      (set-face-underline-p 'org-link nil)
+    (set-face-underline-p 'org-link t))
+  (call-interactively 'iimage-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Backups and auto save ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (setq backup-by-copying t    ; Don't delink hardlinks
-    backup-directory-alist '(("." . "~/.emacs.d/temps/backups"))
+    backup-directory-alist '(("." . "~/.emacs.d/temps/backups/"))
     version-control t      ; Use version numbers on backups
     delete-old-versions t  ; Automatically delete excess backups
     kept-new-versions 20   ; how many of the newest versions to keep
     kept-old-versions 5    ; and how many of the old
 
-    auto-save-file-name-transforms `((".*" ,"~/.emacs.d/temps/autosaves" t))
-    undo-tree-history-directory-alist (quote (("." . "~/.emacs.d/temps/undotrees")))
+    auto-save-file-name-transforms `((".*" ,"~/.emacs.d/temps/autosaves/" t))
+    undo-tree-history-directory-alist (quote (("." . "~/.emacs.d/temps/undotrees/")))
     )
 
 (setq-default save-place t)
@@ -419,6 +600,9 @@
 ;;;;;;;;;;;;;;;;;
 ;; Setup hooks ;;
 ;;;;;;;;;;;;;;;;;
+
+;; return to normal mode after save
+(add-hook 'after-save-hook 'evil-normal-state)
 
 ;; fontlocking
 (add-hook 'js2-mode-hook 'javascript-unicode)
@@ -431,6 +615,22 @@
           'my-mc-evil-back-to-previous-state)
 
 (add-hook 'rectangular-region-mode-hook 'my-rrm-evil-switch-state)
+
+;; haskell
+(add-hook 'haskell-mode-hook (lambda () (ghc-init)))
+(add-hook 'haskell-mode-hook (lambda () (flycheck-mode 1)))
+(add-hook 'haskell-mode-hook
+          (lambda ()
+            (mapc (lambda (x) (add-to-list 'ac-sources x))
+                  (ac-source-ghc-module
+                   ac-source-ghc-symbol
+                   ac-source-ghc-pragmas
+                   ac-source-ghc-langexts))))
+
+;; show indentation guides in languages with semantic indentation
+(add-hook 'slim-mode-hook 'highlight-indentation-current-column-mode)
+(add-hook 'coffee-mode-hook 'highlight-indentation-current-column-mode)
+(add-hook 'python-mode-hoocoffee-mode-hook 'highlight-indentation-current-column-mode)
 
 ;;; autopair messes with multiple cursors, so disable it
 ;; (add-hook 'multiple-cursors-mode-enabled-hook (lambda ()
@@ -457,7 +657,10 @@
 (add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
 
 ;; disabled linum mode in org-mode
-(add-hook 'org-mode-hook (lambda () (linenum-mode 0)))
+;; (add-hook 'org-mode-hook (lambda () (linenum-mode 0)))
+
+;; add a hook so we can display images on load
+(add-hook 'org-mode-hook '(lambda () (org-turn-on-iimage-in-org)))
 
 ;; stop ace-jump mode from going into insert mode
 (add-hook 'ace-jump-mode-end-hook 'exit-recursive-edit)
@@ -481,26 +684,50 @@
 ;; activate flycheck ind js2-mode
 (add-hook 'js2-mode-hook (lambda () (flycheck-mode 1)))
 
+;; use latex ac sources
+(add-hook 'latex-mode-hook 'ac-latex-mode-setup)
+(add-hook 'latex-mode-hook 'outline-minor-mode)
+
+;; forward and backwards search
+(add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode)
+
+;; outline mode
+(add-hook 'outline-minor-mode-hook
+          (lambda ()
+            (require 'outline-magic)
+            (evil-define-key 'normal outline-minor-mode-map (kbd "TAB") 'outline-cycle)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Custom keybindings ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; mac like backspace key
+(define-key evil-insert-state-map (kbd "M-DEL") 'backward-kill-line)
+(define-key evil-insert-state-map (kbd "C-DEL") 'backward-kill-word)
+(define-key evil-insert-state-map (kbd "<C-backspace>") 'backward-kill-word)
 
 ;; Typo rebindings and general shortcuts
 (evil-ex-define-cmd "W" 'evil-write)
 (evil-ex-define-cmd "b" 'switch-to-previous-buffer)
 
 ;; Why the hell is Y yank whole line anyways?!
-(define-key evil-normal-state-map "Y" (kbd "y$"))
+(define-key evil-normal-state-map "H" (kbd "hg_"))
+
+;; make C-g also cancel insert state
+(define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+(define-key evil-visual-state-map (kbd "C-g") 'evil-normal-state)
+(define-key evil-replace-state-map (kbd "C-g") 'evil-normal-state)
+(define-key evil-operator-state-map (kbd "C-g") 'evil-normal-state)
 
 ;; keybindings that are in vim but not evil?
-(define-key evil-visual-state-map "O" 'exchange-point-and-mark)
-(define-key evil-visual-state-map "o" 'evil-visual-exchange-corners)
+(define-key evil-visual-state-map "L" 'exchange-point-and-mark)
+(define-key evil-visual-state-map "l" 'evil-visual-exchange-corners)
 ;; make ctrl-u scroll up as is in vim
 (define-key evil-normal-state-map (kbd "C-u") 'evil-scroll-up)
 ;; J joins lines
-(define-key evil-normal-state-map "J" 'evil-join-unfill)
-(define-key evil-visual-state-map "J" 'evil-join-unfill)
+;; (define-key evil-normal-state-map "J" 'evil-join-unfill)
+;; (define-key evil-visual-state-map "J" 'evil-join-unfill)
 
 ;; custom evil motions / operators
 (define-key evil-operator-state-map (kbd "lw") 'evil-little-word)
@@ -524,32 +751,32 @@
 
 ;; nerd commenter
 (evil-leader/set-key "c SPC" 'evilnc-comment-or-uncomment-lines )
-(evil-define-key 'visual global-map (kbd ",c SPC") 'comment-or-uncomment-region)
+(evil-define-key 'visual global-map (kbd "SPC c SPC") 'comment-or-uncomment-region)
+
+;; Flycheck
+(evil-leader/set-key "e" 'nil )
+(evil-leader/set-key "e r" 'flycheck-first-error )
+
 
 ;; ace-jump-mode
-(define-key evil-motion-state-map (kbd "SPC") #'evil-ace-jump-char-mode)
-(define-key evil-motion-state-map (kbd "C-SPC") #'evil-ace-jump-word-mode)
-
-(define-key evil-operator-state-map (kbd "SPC") #'evil-ace-jump-char-mode)      ; similar to f
-(define-key evil-operator-state-map (kbd "C-SPC") #'evil-ace-jump-char-to-mode) ; similar to t
-(define-key evil-operator-state-map (kbd "M-SPC") #'evil-ace-jump-word-mode)
-
 (evil-leader/set-key
   "f"  'evil-ace-jump-char-mode
+  "t"  'evil-ace-jump-char-to-mode
   "w"  'evil-ace-jump-word-mode)
 
-(defadvice evil-visual-char (before spc-for-char-jump activate)
-  (define-key evil-motion-state-map (kbd "SPC") #'evil-ace-jump-char-mode))
+;; (defadvice evil-visual-char (before spc-for-char-jump activate)
+;;   (define-key evil-motion-state-map (kbd "SPC") #'evil-ace-jump-char-mode))
 
-(defadvice evil-visual-block (before spc-for-char-jump activate)
-  (define-key evil-motion-state-map (kbd "SPC") #'evil-ace-jump-char-mode))
+;; (defadvice evil-visual-block (before spc-for-char-jump activate)
+;;   (define-key evil-motion-state-map (kbd "SPC") #'evil-ace-jump-char-mode))
 
 ;; multiple cursors
 (evil-leader/set-key
-  "ma" 'mc/mark-all-like-this-in-defun
+  "mf" 'mc/mark-all-like-this-in-defun
   "mw" 'mc/mark-all-words-like-this-in-defun
   "ms" 'mc/mark-all-symbols-like-this-in-defun
-  "md" 'mc/mark-all-like-this-dwim)
+  "mn" 'mc/mark-next-like-this
+  "ma" 'mc/mark-all-like-this-dwim)
 
 (global-set-key (kbd "M-+") 'mc/mark-next-like-this)
 (global-set-key (kbd "M--") 'mc/mark-previous-like-this)
@@ -558,7 +785,6 @@
 ;; expand region
 (define-key evil-visual-state-map "ar" 'er/expand-region)
 (define-key evil-visual-state-map "ir" 'er/contract-region)
-(evil-leader/set-key "ar" 'er/expand-region)
 
 ;; YAS bindings
 (evil-leader/set-key "SPC" (lambda ()
@@ -567,10 +793,10 @@
                              (yas-insert-snippet)))
 
 ;; Window management
-(define-key evil-normal-state-map (kbd "H-k") 'buf-move-up)
-(define-key evil-normal-state-map (kbd "H-j") 'buf-move-down)
-(define-key evil-normal-state-map (kbd "H-h") 'buf-move-left)
-(define-key evil-normal-state-map (kbd "H-l") 'buf-move-right)
+(define-key evil-normal-state-map (kbd "H-y") 'buf-move-left)
+(define-key evil-normal-state-map (kbd "H-n") 'buf-move-down)
+(define-key evil-normal-state-map (kbd "H-i") 'buf-move-up)
+(define-key evil-normal-state-map (kbd "H-o") 'buf-move-right)
 
 ;; Magit
 (evil-leader/set-key
@@ -580,16 +806,22 @@
   "gg"  'vc-git-grep)
 
 ;; move to next/prev git item with j/k in Magit mode
-(evil-add-hjkl-bindings magit-status-mode-map 'emacs
-  "K" 'magit-discard-item
-  "l" 'magit-key-mode-popup-logging
-  "h" 'magit-toggle-diff-refine-hunk)
+;; (evil-add-hjkl-bindings magit-status-mode-map 'emacs
+;;   "K" 'magit-discard-item
+;;   "l" 'magit-key-mode-popup-logging
+;;   "h" 'magit-toggle-diff-refine-hunk)
 
 ;; Move-text keybindings (move text or region up/down)
-(define-key evil-normal-state-map (kbd "M-k") 'move-text-up)
-(define-key evil-normal-state-map (kbd "M-j") 'move-text-down)
-(define-key evil-visual-state-map (kbd "M-k") 'move-text-up)
-(define-key evil-visual-state-map (kbd "M-j") 'move-text-down)
+(define-key evil-normal-state-map (kbd "M-i") 'move-text-up)
+(define-key evil-normal-state-map (kbd "M-n") 'move-text-down)
+(define-key evil-visual-state-map (kbd "M-i") 'move-text-up)
+(define-key evil-visual-state-map (kbd "M-n") 'move-text-down)
+
+;; jk escapes and switches to normal mode
+;; (key-chord-define evil-insert-state-map  "" 'evil-normal-state)
+;; (key-chord-define evil-visual-state-map  "jk" 'evil-normal-state)
+;; (key-chord-define evil-operator-state-map  "jk" 'evil-normal-state)
+;; (key-chord-define evil-emacs-state-map  "jk" 'evil-normal-state)
 
 ; Case conversion
 (evil-leader/set-key
@@ -603,6 +835,15 @@
 (global-set-key (kbd "C-c f") 'simp-project-find-file)
 (global-set-key (kbd "M-t") 'fiplr-find-file)
 
+
+(evil-leader/set-key
+  "oss" 'show-entry
+  "ohh" 'hide-entry
+  "ost" 'show-subtree
+  "osa" 'show-all
+  "oht" 'hide-subtree
+  "oha" 'hide-body)
+
 ;; default mac shortcuts to save file and close window
 (define-key evil-normal-state-map (kbd "M-s") 'save-buffer)
 (define-key evil-insert-state-map (kbd "M-s") 'save-buffer)
@@ -612,9 +853,9 @@
 (global-set-key (kbd "M-RET") 'toggle-fullscreen)
 
 ;; Auto-complete
-(define-key ac-completing-map (kbd "C-n") 'ac-next)
+(define-key ac-completing-map (kbd "C-j") 'ac-next)
 (define-key ac-completing-map (kbd "C-p") 'ac-previous)
-(define-key ac-completing-map (kbd "C-g") 'ac-stop)
+(define-key ac-completing-map (kbd "C-g") 'evil-normal-state)
 (define-key ac-completing-map (kbd "ESC") 'evil-normal-state)
 (evil-make-intercept-map ac-completing-map)
 
@@ -626,8 +867,7 @@
 (evil-leader/set-key
   "bl"  'switch-to-buffer
   "bd"  'evil-delete-buffer
-  "d"   'kill-this-buffer
-  "k"   'kill-this-buffer)
+  "bk"   'kill-this-buffer)
 
 ;; Misc Keybindings
 (evil-leader/set-key

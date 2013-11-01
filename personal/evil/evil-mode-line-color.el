@@ -1,91 +1,76 @@
-(eval-when-compile (require 'cl))
+(require 'powerline)
 
-(defgroup mode-line-color nil
-  "Mode line color."
-  :prefix "mode-line-color-"
-  :group 'mode-line)
+(add-hook 'evil-normal-state-entry-hook
+          '(lambda ()
+             (set-face-background 'mode-line "#b4c342")
+             (set-face-foreground 'mode-line "#546e00")
 
-(defcustom mode-line-color-buffers-regexp '("^\\*scratch\\*$")
-  "List of regular expressions of buffer names to enable mode-line-color-mode automatically."
-  :group 'mode-line-color
-  :type '(repeat 'string))
+             (set-face-background 'powerline-active1 "#eee8d5")
+             (set-face-foreground 'powerline-active1 "#657b83")
 
-(defcustom mode-line-color-exclude-buffers-regexp '("^ ")
-  "List of regular expressions of buffer names not to enable mode-line-color-mode automatically."
-  :group 'mode-line-color
-  :type '(repeat 'string))
+             (set-face-background 'powerline-active2 "#fdf6e3")
+             (set-face-foreground 'powerline-active2 "#839496")
 
-(defvar mode-line-color-hook nil
-  "hook for setting mode line color
+             (powerline-reset)))
 
-   Usage:
-     (defun your-function-to-set-mode-line-color (setter)
-       (funcall setter \"yellow\"))
-     (add-hook 'mode-line-color-hook 'your-function-to-set-mode-line-color)")
+(add-hook 'evil-emacs-state-entry-hook
+          '(lambda ()
+             (set-face-background 'mode-line "#FA91EC")
+             (set-face-foreground 'mode-line "#93115C")
 
-(defvar mode-line-color-mode nil)
-(defvar mode-line-color-color nil)
-(defvar mode-line-color-original nil)
-(defvar mode-line-color-activated nil)
-(make-variable-buffer-local 'mode-line-color-activated)
+             (set-face-background 'powerline-active1 "#eee8d5")
+             (set-face-foreground 'powerline-active1 "#657b83")
 
-(defun mode-line-color-set-color (color)
-  (setq mode-line-color-color color))
+             (set-face-background 'powerline-active2 "#fdf6e3")
+             (set-face-foreground 'powerline-active2 "#839496")
 
-(defun mode-line-color-excluded-p ()
-  (let* ((buffer (current-buffer)) (name (buffer-name buffer)))
-    (flet ((mem-pat (s l)
-             (memq nil (mapcar #'(lambda (r) (not (string-match-p r s))) l))))
-      (or (minibufferp buffer)
-          (and (not (mem-pat name mode-line-color-buffers-regexp))
-               (mem-pat name mode-line-color-exclude-buffers-regexp))))))
+             (powerline-reset)))
 
-(defun mode-line-color-active-p ()
-  (unless mode-line-color-activated ; make cache
-    (let ((exclude (mode-line-color-excluded-p)))
-      (setq mode-line-color-activated (if exclude 0 1))))
-  (= 1 mode-line-color-activated))
+(add-hook 'evil-replace-state-entry-hook
+          '(lambda ()
+             (set-face-background 'mode-line "#FF6E64")
+             (set-face-foreground 'mode-line "#990A1B")
 
-(defun mode-line-color-update (&optional force)
-  (if (mode-line-color-active-p)
-      (let ((mode-line-color-color nil))
-        (run-hook-with-args 'mode-line-color-hook 'mode-line-color-set-color)
-        (set-face-background 'mode-line (or mode-line-color-color
-                                            mode-line-color-original)))
-    (unless (minibufferp)
-      (set-face-background 'mode-line mode-line-color-original))))
+             (set-face-background 'powerline-active1 "#eee8d5")
+             (set-face-foreground 'powerline-active1 "#657b83")
 
-(defmacro define-mode-line-color (bind &rest body)
-  (declare (indent defun))
-  (let ((prev (nth 0 bind)))
-    `(add-hook 'mode-line-color-hook
-               #'(lambda (setter)
-                   (let* ((,prev mode-line-color-color) (color (progn ,@body)))
-                     (when color (funcall setter color)))))))
+             (set-face-background 'powerline-active2 "#fdf6e3")
+             (set-face-foreground 'powerline-active2 "#839496")
 
-(defun mode-line-color-install ()
-  (unless mode-line-color-original
-    (setq mode-line-color-original (face-background 'mode-line)))
-  (add-hook 'post-command-hook 'mode-line-color-update))
+             (powerline-reset)))
 
-(defun mode-line-color-uninstall ()
-  (set-face-background 'mode-line mode-line-color-original)
-  (remove-hook 'post-command-hook 'mode-line-color-update))
+(add-hook 'evil-visual-state-entry-hook
+          '(lambda ()
+             (set-face-background 'mode-line "#F2804F")
+             (set-face-foreground 'mode-line "#8B2C02")
 
-(defadvice set-buffer (after update-mode-line-color activate)
-  (when (eq (current-buffer) (window-buffer (selected-window)))
-    (mode-line-color-update)))
+             (set-face-background 'powerline-active1 "#eee8d5")
+             (set-face-foreground 'powerline-active1 "#657b83")
 
-(defadvice kill-buffer (after update-mode-line-color activate)
-  (mode-line-color-update))
+             (set-face-background 'powerline-active2 "#fdf6e3")
+             (set-face-foreground 'powerline-active2 "#839496")
 
-;;;###autoload
-(define-minor-mode mode-line-color-mode
-  "Set color of mode line."
-  :global t
-  :group 'mode-line-color
-  (if mode-line-color-mode
-      (mode-line-color-install)
-    (mode-line-color-uninstall)))
+             (powerline-reset)))
 
-(provide 'mode-line-color)
+(add-hook 'evil-insert-state-entry-hook
+          '(lambda ()
+             (set-face-background 'mode-line "#073642")
+             (set-face-foreground 'mode-line "#69b7f0")
+
+             (set-face-background 'powerline-active1 "#00629d")
+             (set-face-foreground 'powerline-active1 "#93a1a1")
+
+             (set-face-background 'powerline-active2 "#69b7f0")
+             (set-face-foreground 'powerline-active2 "#586e75")
+
+             (powerline-reset)))
+
+(set-face-background 'mode-line-inactive "#fdf6e3")
+(set-face-foreground 'mode-line-inactive "#deb542")
+(set-face-background 'powerline-inactive1 "#eee8d5")
+(set-face-foreground 'powerline-inactive1 "#b58900")
+(set-face-background 'powerline-inactive2 "#fdf6e3")
+(set-face-foreground 'powerline-inactive2 "#deb542")
+
+(provide 'evil-mode-line-color)
+;;; evil-mode-line-color ends here

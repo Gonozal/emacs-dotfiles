@@ -8,9 +8,9 @@
 (deftheme base16-default)
 
 (let ((base00 "#151515")
-      (base01 "#202020")
-      (base02 "#303030")
-      (base03 "#505050")
+      (base01 "#252520")
+      (base02 "#3a3a3a")
+      (base03 "#606060")
       (base04 "#b0b0b0")
       (base05 "#d0d0d0")
       (base06 "#e0e0e0")
@@ -24,7 +24,7 @@
       (base0E "#aa759f")
       (base0F "#8f5536"))
 
-  (custom-theme-set-faces 
+  (custom-theme-set-faces
    'base16-default
 
    ;; Built-in stuff (Emacs 23)
@@ -439,7 +439,7 @@
    `(custom-variable-tag ((t (:foreground ,base0D))))
    `(custom-group-tag ((t (:foreground ,base0D))))
    `(custom-state ((t (:foreground ,base0B)))))
-   
+
 
   (custom-theme-set-variables
    'base16-default

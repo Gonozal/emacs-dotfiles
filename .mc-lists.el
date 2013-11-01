@@ -3,12 +3,20 @@
 
 (setq mc/cmds-to-run-for-all
       '(
+        evil-force-normal-state
+        evil-forward-char
         evil-next-line
         evil-previous-line
+        org-self-insert-command
+        ruby-electric-curlies
+        ruby-electric-matching-char
         ))
 
 (setq mc/cmds-to-run-once
       '(
+        ensime-mouse-motion
         evil-backward-char
         evil-normal-state
+        mac-mwheel-scroll
+        ruby-electric-space
         ))
