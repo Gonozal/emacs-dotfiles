@@ -24,35 +24,35 @@
  '(
    ;; evil and plugins
    evil surround evil-numbers evil-nerd-commenter evil-leader evil-paredit
-   ;; javascript
-   js2-mode js2-refactor ac-js2 tern tern-auto-complete
-   ;; grep etc
-   ag wgrep wgrep-ag
-   ;; visual
-   diff-hl linum-relative rainbow-delimiters browse-kill-ring popwin
-   highlight-indentation
-   pos-tip
-   ;; ruby
-   rvm robe rinari ruby-electric ruby-block
-   ;; Latex AcuTex
-   auctex ac-math outline-magic
-   ;; clojure
-   nrepl ac-nrepl
-   ;; misc language support
-   slim-mode coffee-mode nginx-mode scala-mode2
-   ;; haskell
-   ghc hi2
-   ;; html
-   evil-matchit
-   ;; editing
-   move-text tagedit yasnippet smartparens auto-complete
-   emmet-mode
-   ;; flycheck-color-mode-line
-   exec-path-from-shell
-   buffer-move
-   restclient
-   grizzl
-   midnight))
+        ;; javascript
+        js2-mode js2-refactor ac-js2 tern tern-auto-complete
+        ;; grep etc
+        ag wgrep wgrep-ag
+        ;; visual
+        diff-hl linum-relative rainbow-delimiters browse-kill-ring popwin
+        highlight-indentation
+        pos-tip
+        ;; ruby
+        rvm robe rinari ruby-electric ruby-block
+        ;; Latex AcuTex
+        auctex ac-math outline-magic
+        ;; clojure
+        nrepl ac-nrepl
+        ;; misc language support
+        slim-mode coffee-mode nginx-mode scala-mode2
+        ;; haskell
+        ghc hi2
+        ;; html
+        evil-matchit
+        ;; editing
+        move-text tagedit yasnippet smartparens auto-complete
+        emmet-mode dash-at-point
+        ;; flycheck-color-mode-line
+        exec-path-from-shell
+        buffer-move
+        restclient
+        grizzl
+        midnight))
 
 
 (require 'rvm)
@@ -107,7 +107,7 @@
 
 ;; Require custom defuns
 (require 'setup-defuns)
-; (require 'evil-custom-maps)
+                                        ; (require 'evil-custom-maps)
 
 ;;;;;;;;;;;;;;;
 ;; Setup GUI ;;
@@ -169,30 +169,30 @@
 (setq whitespace-style '(face empty trailing lines-tail))
 
 ;;;; Tab settings ;;;;
-; Tab width is 2
-(setq tab-width 2)
+                                        ; Tab width is 2
+;; (setq tab-width 2)
 
-; Tab width is 2 by default..
+                                        ; Tab width is 2 by default..
 (setq-default tab-width 2)
 
-; Use spaces always.
+                                        ; Use spaces always.
 (setq indent-tabs-mode nil)
 
-; Jump by 2.
+                                        ; Jump by 2.
 (setq c-basic-offset 2)
 
-; this defaulted to 4 and had to be reset to 2.
+                                        ; this defaulted to 4 and had to be reset to 2.
 (setq perl-indent-level 2)
 
-;Tab stop list out to col 52
-;Manually set by x2
-(setq tab-stop-list
-      '(2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48 50 52))
+                                        ;Tab stop list out to col 52
+                                        ;Manually set by x2
+;; (setq tab-Stop-list
+;;       '(2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48 50 52))
 
 (custom-set-variables
  '(js2-basic-offset 2)
  '(js2-bounce-indent-p t)
-)
+ )
 
 (setq js-indent-level 2)
 (setq-default js2-basic-offset 2)
@@ -231,6 +231,11 @@
 
 ;; Fiplr
 (setq fiplr-root-markers '(".git"))
+
+;; Dash at point
+(evil-leader/set-key
+  "d" 'dash-at-point
+  )
 
 ;;;;;;;;;;;;;;;;
 ;; Setup evil ;;
@@ -335,11 +340,11 @@
 
 ;; extra modes auto-complete must support
 (dolist (mode '(magit-log-edit-mode log-edit-mode org-mode text-mode haml-mode
-                sass-mode yaml-mode csv-mode espresso-mode haskell-mode
-                html-mode nxml-mode sh-mode smarty-mode clojure-mode
-                lisp-mode textile-mode markdown-mode tuareg-mode
-                js2-mode js3-mode css-mode less-css-mode coffee-mode scss-mode
-                slim-mode))
+                                    sass-mode yaml-mode csv-mode espresso-mode haskell-mode
+                                    html-mode nxml-mode sh-mode smarty-mode clojure-mode
+                                    lisp-mode textile-mode markdown-mode tuareg-mode
+                                    js2-mode js3-mode css-mode less-css-mode coffee-mode scss-mode
+                                    slim-mode))
   (add-to-list 'ac-modes mode))
 
 (set-default 'ac-sources
@@ -378,19 +383,28 @@
 (define-key haskell-mode-map (kbd "M-s") 'haskell-mode-save-buffer)
 (define-key haskell-mode-map (kbd "M-t") nil)
 (push "*GHC Info*" popwin:special-display-config)
+;; (push "*Warnings*" popwin:special-display-config)
 
 ;; evil haskell keybindints
 (evil-leader/set-key-for-mode 'haskell-mode
   "hat" (lambda ()
-         (interactive)
-         (universal-argument)
-         (inferior-haskell-type)
-         (execute-kbd-macro (vector 'return)))
+          (interactive)
+          (inferior-haskell-type (thing-at-point 'symbol) t))
   "ht" 'inferior-haskell-type
   "hl" 'inferior-haskell-load-file
   "hi" 'inferior-haskell-info
   "hr" 'inferior-haskell-reload-file
+  "hd" 'ghc-browse-document
   )
+
+;; other haskell keybindings
+(define-key flyspell-mode-map (kbd "C-,") nil)
+(define-key haskell-mode-map (kbd "C-,") " <- ")
+(define-key haskell-mode-map (kbd "C-$") " <$> ")
+(define-key haskell-mode-map (kbd "C-$") " <*> ")
+
+;; dash integration
+(add-to-list 'dash-at-point-mode-alist '(haskell-mode . "hs"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -484,20 +498,20 @@
 ;; add ac-sources to default ac-sources
 (defun ac-latex-mode-setup ()
   (setq ac-sources
-     (append '(ac-source-math-unicode
-               ac-source-math-latex
-               c-source-latex-commands)
-               ac-sources)))
+        (append '(ac-source-math-unicode
+                  ac-source-math-latex
+                  c-source-latex-commands)
+                ac-sources)))
 
 (font-lock-add-keywords
-   'latex-mode
-   `((,(concat "^\\s-*\\\\\\("
-               "\\(documentclass\\|\\(sub\\)?section[*]?\\)"
-               "\\(\\[[^]% \t\n]*\\]\\)?{[-[:alnum:]_ ]+"
-               "\\|"
-               "\\(begin\\|end\\){document"
-               "\\)}.*\n?")
-      (0 'your-face append))))
+ 'latex-mode
+ `((,(concat "^\\s-*\\\\\\("
+             "\\(documentclass\\|\\(sub\\)?section[*]?\\)"
+             "\\(\\[[^]% \t\n]*\\]\\)?{[-[:alnum:]_ ]+"
+             "\\|"
+             "\\(begin\\|end\\){document"
+             "\\)}.*\n?")
+    (0 'your-face append))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; File to language mappings ;;
@@ -584,15 +598,15 @@
 ;; Backups and auto save ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (setq backup-by-copying t    ; Don't delink hardlinks
-    backup-directory-alist '(("." . "~/.emacs.d/temps/backups/"))
-    version-control t      ; Use version numbers on backups
-    delete-old-versions t  ; Automatically delete excess backups
-    kept-new-versions 20   ; how many of the newest versions to keep
-    kept-old-versions 5    ; and how many of the old
+      backup-directory-alist '(("." . "~/.emacs.d/temps/backups/"))
+      version-control t      ; Use version numbers on backups
+      delete-old-versions t  ; Automatically delete excess backups
+      kept-new-versions 20   ; how many of the newest versions to keep
+      kept-old-versions 5    ; and how many of the old
 
-    auto-save-file-name-transforms `((".*" ,"~/.emacs.d/temps/autosaves/" t))
-    undo-tree-history-directory-alist (quote (("." . "~/.emacs.d/temps/undotrees/")))
-    )
+      auto-save-file-name-transforms `((".*" ,"~/.emacs.d/temps/autosaves/" t))
+      undo-tree-history-directory-alist (quote (("." . "~/.emacs.d/temps/undotrees/")))
+      )
 
 (setq-default save-place t)
 (setq save-place-file (expand-file-name ".places" user-emacs-directory))
@@ -619,6 +633,8 @@
 ;; haskell
 (add-hook 'haskell-mode-hook (lambda () (ghc-init)))
 (add-hook 'haskell-mode-hook (lambda () (flycheck-mode 1)))
+(add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
+(add-hook 'haskell-mode-hook 'hi2-mode)
 (add-hook 'haskell-mode-hook
           (lambda ()
             (mapc (lambda (x) (add-to-list 'ac-sources x))
@@ -823,7 +839,7 @@
 ;; (key-chord-define evil-operator-state-map  "jk" 'evil-normal-state)
 ;; (key-chord-define evil-emacs-state-map  "jk" 'evil-normal-state)
 
-; Case conversion
+                                        ; Case conversion
 (evil-leader/set-key
   "crm" 'mixedcase-word-at-point
   "crc" 'camelcase-word-at-point

@@ -19,4 +19,5 @@
         evil-normal-state
         mac-mwheel-scroll
         ruby-electric-space
+        text-scale-increase
         ))
