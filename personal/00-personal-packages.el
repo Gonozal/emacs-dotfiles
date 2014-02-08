@@ -8,7 +8,7 @@
 (add-to-list 'load-path "~/.emacs.d/personal-packages/fiplr/")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/fuzzy-el/")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/popup-el/")
-(add-to-list 'load-path "~/Development/Scala/ensime/src/main/elisp/")
+(add-to-list 'load-path "~/Development/Scala/ensime/dist/elisp/")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/evil-org-mode/")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/org-mode/lisp")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/org-mode/lisp/contrib/lisp")
@@ -48,14 +48,15 @@
         move-text tagedit yasnippet smartparens auto-complete
         emmet-mode dash-at-point
         ;; flycheck-color-mode-line
+        flycheck-haskell
         exec-path-from-shell
         buffer-move
         restclient
         grizzl
+        flx-ido
         midnight))
 
 
-(require 'rvm)
 (require 'evil)
 (require 'evil-numbers)
 (require 'evil-leader)
@@ -66,6 +67,8 @@
 (require 'auto-complete-config)
 (require 'popup)
 (require 'fuzzy)
+
+(require 'rvm)
 (require 'rinari)
 (require 'robe)
 (require 'ruby-block)
@@ -75,32 +78,33 @@
 (require 'ac-js2)
 (require 'emmet-mode)
 (require 'tagedit)
-(require 'diff-hl)
-(require 'fiplr)
 (require 'ag)
 (require 'wgrep-ag)
-(require 'linum-relative)
-(require 'smartparens)
-(require 'smartparens-config)
-(require 'rainbow-delimiters)
 (require 'exec-path-from-shell)
 (require 'move-text)
 (require 'browse-kill-ring)
 (require 'scala-mode2)
 (require 'ensime)
-(require 'yasnippet)
 (require 'restclient)
-(require 'popwin)
-(require 'flycheck)
-;; (require 'flycheck-color-mode-line)
 (require 'multiple-cursors)
-(require 'saveplace)
-(require 'midnight)
 (require 'ruby-electric)
 (require 'org)
-(require 'ac-ghc-mod)
 (require 'ox-latex)
 (require 'evil-org)
+(require 'thingatpt+)
+(require 'yasnippet)
+(require 'popwin)
+(require 'ac-ghc-mod)
+
+(require 'diff-hl)
+(require 'fiplr)
+(require 'linum-relative)
+(require 'smartparens)
+(require 'smartparens-config)
+(require 'rainbow-delimiters)
+(require 'flycheck)
+(require 'saveplace)
+(require 'midnight)
 (require 'evil-mode-line-color)
 
 (autoload 'ghc-init "ghc" nil t)
@@ -169,25 +173,14 @@
 (setq whitespace-style '(face empty trailing lines-tail))
 
 ;;;; Tab settings ;;;;
-                                        ; Tab width is 2
-;; (setq tab-width 2)
-
-                                        ; Tab width is 2 by default..
 (setq-default tab-width 2)
-
-                                        ; Use spaces always.
+(defvaralias 'c-basic-offset 'tab-width)
+(defvaralias 'cperl-indent-level 'tab-width)
+(setq tab-width 2)
 (setq indent-tabs-mode nil)
 
-                                        ; Jump by 2.
-(setq c-basic-offset 2)
-
-                                        ; this defaulted to 4 and had to be reset to 2.
-(setq perl-indent-level 2)
-
-                                        ;Tab stop list out to col 52
-                                        ;Manually set by x2
-;; (setq tab-Stop-list
-;;       '(2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48 50 52))
+(setq tab-Stop-list
+      '(2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48 50 52))
 
 (custom-set-variables
  '(js2-basic-offset 2)
@@ -224,6 +217,8 @@
 ;; load flycheck
 ;; (eval-after-load "flycheck"
 ;;   '(add-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode))
+(eval-after-load 'flycheck
+  '(require 'flycheck-haskell))
 
 ;; projectile
 (projectile-global-mode)
@@ -242,7 +237,7 @@
 ;;;;;;;;;;;;;;;;
 
 ;; were using evil, no need for keychoards!
-(key-chord-mode 1)
+(key-chord-mode 0)
 
 ;; General setup
 (evil-mode nil)
@@ -314,11 +309,12 @@
 (rename-modeline "js2-mode" js2-mode "JS2")
 
 (diminish 'emmet-mode "")
-(diminish 'flyspell-mode " ✓ ")
-(diminish 'whitespace-mode " ☐ ")
-(diminish 'undo-tree-mode " ⤺ ")
+(diminish 'flyspell-mode "")
+(diminish 'whitespace-mode "")
+(diminish 'undo-tree-mode "")
 (diminish 'projectile-mode "")
 (diminish 'tagedit-mode "<>")
+(diminish 'flycheck-mode " ✓ ")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; auto-complete setup ;;
@@ -365,35 +361,65 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Ruby
-(rvm-use-default)
-(setq ruby-deep-indent-paren nil)
-(ruby-block-mode t)
-(setq ruby-block-highlight-toggle t)
-(custom-set-variables '(ruby-electric-expand-delimiters-list '(?\|)))
+(eval-after-load 'ruby-mode
+  '(progn
+     (rvm-use-default)
+     (setq ruby-deep-indent-paren nil)
+     (ruby-block-mode t)
+     (setq ruby-block-highlight-toggle t)
+     (custom-set-variables '(ruby-electric-expand-delimiters-list '(?\|)))
+     )
+  )
 
 ;; html, xml etc
 (tagedit-add-paredit-like-keybindings)
 (tagedit-add-experimental-features)
 
+;;;;;;;;;;;;;;;;;;;
+;; markdown mode ;;
+;;;;;;;;;;;;;;;;;;;
+(add-to-list 'auto-mode-alist '("\\.md\\'" . gfm-mode))
+(add-to-list 'auto-mode-alist '("\\.markdown\\'" . gfm-mode))
+(add-to-list 'auto-mode-alist '("\\.text\\'" . gfm-mode))
+(add-to-list 'auto-mode-alist '("\\.txt\\'" . gfm-mode))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Scala IDE configuration ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(push "*Inspector*" popwin:special-display-config)
+(push "*ENSIME-Compilation-Result*" popwin:special-display-config)
+(evil-leader/set-key-for-mode 'scala-mode
+  "hi" 'ensime-inspect-type-at-point
+  "ht" 'ensime-typecheck-all
+  "hr" 'ensime-refactor-rename
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Haskell IDE configuration ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (setq haskell-stylish-on-save t)
 (define-key haskell-mode-map (kbd "M-s") 'haskell-mode-save-buffer)
-(define-key haskell-mode-map (kbd "M-t") nil)
 (push "*GHC Info*" popwin:special-display-config)
 ;; (push "*Warnings*" popwin:special-display-config)
 
-;; evil haskell keybindints
+;; evil haskell keybindings
 (evil-leader/set-key-for-mode 'haskell-mode
+  ;; "hat" (lambda ()
+  ;;         (interactive)
+  ;;         (let* ((haskell-type (haskell-get-type-string))
+  ;;                (sym (word-at-point)))
+  ;;           (save-excursion
+  ;;             (beginning-of-line)
+  ;;             (open-line 1)
+  ;;             (insert (format "%s :: %s" sym haskell-type))
+  ;;             (when newline-and-indent
+  ;;               (indent-according-to-mode)))))
   "hat" (lambda ()
           (interactive)
-          (inferior-haskell-type (thing-at-point 'symbol) t))
-  "ht" 'inferior-haskell-type
-  "hl" 'inferior-haskell-load-file
-  "hi" 'inferior-haskell-info
-  "hr" 'inferior-haskell-reload-file
+          (haskell-process-insert-type))
+  "ht" 'haskell-get-type
+  "hl" 'haskell-process-load-file
+  "hi" 'haskell-process-do-info
   "hd" 'ghc-browse-document
   )
 
@@ -631,20 +657,38 @@
 (add-hook 'rectangular-region-mode-hook 'my-rrm-evil-switch-state)
 
 ;; haskell
-(add-hook 'haskell-mode-hook (lambda () (ghc-init)))
-(add-hook 'haskell-mode-hook (lambda () (flycheck-mode 1)))
 (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
+(add-hook 'haskell-mode-hook 'haskell-indentation-mode)
+(add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
+(add-hook 'haskell-mode-hook 'turn-on-haskell-decl-scan)
 (add-hook 'haskell-mode-hook 'hi2-mode)
-(add-hook 'haskell-mode-hook
-          (lambda ()
-            (mapc (lambda (x) (add-to-list 'ac-sources x))
-                  (ac-source-ghc-module
-                   ac-source-ghc-symbol
-                   ac-source-ghc-pragmas
-                   ac-source-ghc-langexts))))
+(add-hook 'haskell-mode-hook (lambda ()
+                               (define-key haskell-mode-map (kbd "M-t") 'fiplr-find-file)
+                               (ghc-init)
+                               (flycheck-mode 1)
+                               (setq tab-width 4)
+                               (setq ac-sources
+                                     (append '(ac-source-ghc-module
+                                               ac-source-ghc-symbol
+                                               ac-source-ghc-pragmas
+                                               ac-source-ghc-langexts)
+                                             ac-sources))))
 
-;; show indentation guides in languages with semantic indentation
+(eval-after-load "haskell-mode"
+  '(progn
+     (define-key haskell-mode-map (kbd "M-t") 'fiplr-find-file)
+     (define-key haskell-mode-map (kbd "C-x C-d") nil)
+     (define-key haskell-mode-map (kbd "C-c C-z") 'haskell-interactive-switch)
+     (define-key haskell-mode-map (kbd "C-c C-l") 'haskell-process-load-file)
+     (define-key haskell-mode-map (kbd "C-c C-b") 'haskell-interactive-switch)
+     (define-key haskell-mode-map (kbd "C-c C-t") 'haskell-process-do-type)
+     (define-key haskell-mode-map (kbd "C-c C-i") 'haskell-process-do-info)
+     (define-key haskell-mode-map (kbd "C-c M-.") nil)
+     (define-key haskell-mode-map (kbd "C-c C-d") nil)))
+
+;; Show indentation guides in languages with semantic indentation
 (add-hook 'slim-mode-hook 'highlight-indentation-current-column-mode)
+(add-hook 'yaml-mode-hook 'highlight-indentation-current-column-mode)
 (add-hook 'coffee-mode-hook 'highlight-indentation-current-column-mode)
 (add-hook 'python-mode-hoocoffee-mode-hook 'highlight-indentation-current-column-mode)
 
@@ -656,7 +700,7 @@
 
 ;; ruby
 (add-hook 'ruby-mode-hook #'(lambda () (smart-parens-mode -1)))
-(add-hook 'ruby-mode-hook (lambda () (ruby-electric-mode t)))
+;; (add-hook 'ruby-mode-hook (lambda () (ruby-electric-mode nil)))
 
 ;; activate robe
 (add-hook 'ruby-mode-hook 'robe-mode)
@@ -671,6 +715,10 @@
 
 ;; activate ensime in scala files
 (add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
+(add-hook 'scala-mode-hook (lambda ()
+                             (setq tab-width 4)
+                             (defvaralias 'c-basic-offset 'tab-width)
+                             (defvaralias 'cperl-indent-level 'tab-width)))
 
 ;; disabled linum mode in org-mode
 ;; (add-hook 'org-mode-hook (lambda () (linenum-mode 0)))

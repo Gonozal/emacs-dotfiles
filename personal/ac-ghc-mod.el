@@ -1,10 +1,10 @@
-(provide 'ac-ghc-mod)
-
 (require 'cl)
 (require 'rx)
 
 (require 'haskell-doc)
 (require 'ghc)
+
+;;; Code:
 
 (defvar ac-source-ghc-module nil "ac-source for import statement.")
 (setq ac-source-ghc-module
@@ -72,3 +72,7 @@
       (if (re-search-forward  (rx bol (* blank) "{-" (* blank) "#" (* blank) "LANGUAGE") (line-end-position) t)
           (return-from search-langexts-line (point))
         )))))
+
+
+(provide 'ac-ghc-mod)
+;;; ac-ghc-mod ends here

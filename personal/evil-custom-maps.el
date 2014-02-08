@@ -54,30 +54,30 @@
 				   evil-emacs-state-map)))
 
 ;;; left down up right motions
-(set-in-all-evil-states-but-insert "y" 'evil-backward-char)
-(set-in-all-evil-states-but-insert "n" 'evil-next-line)
-(set-in-all-evil-states-but-insert "i" 'evil-previous-line)
-(set-in-all-evil-states-but-insert "o" 'evil-forward-char)
+(set-in-all-evil-states-but-insert  "y" 'evil-backward-char)
+(set-in-all-evil-states-but-insert  "n" 'evil-next-line)
+(set-in-all-evil-states-but-insert  "i" 'evil-previous-line)
+(set-in-all-evil-states-but-insert  "o" 'evil-forward-char)
 (define-key evil-operator-state-map "o" 'evil-forward-char)
 
 (set-in-all-evil-states-but-insert "y" 'evil-backward-char)
 (set-in-all-evil-states-but-insert "o" 'evil-forward-char)
 
 ;;; text objects map
-(define-key evil-visual-state-map "k" evil-inner-text-objects-map)
+(define-key evil-visual-state-map   "k" evil-inner-text-objects-map)
 (define-key evil-operator-state-map "k" evil-inner-text-objects-map)
 
 ;;; Normal state
-(define-key evil-normal-state-map "k" 'evil-insert)
-(define-key evil-normal-state-map "K" 'evil-insert-line)
-(define-key evil-normal-state-map "J" 'evil-join) ;;; notmodified
-(define-key evil-normal-state-map "l" 'evil-open-below)
-(define-key evil-normal-state-map "L" 'evil-open-above)
+(define-key evil-normal-state-map  "k" 'evil-insert)
+(define-key evil-normal-state-map  "K" 'evil-insert-line)
+(define-key evil-normal-state-map  "J" 'evil-join) ;;; notmodified
+(define-key evil-normal-state-map  "l" 'evil-open-below)
+(define-key evil-normal-state-map  "L" 'evil-open-above)
+(define-key evil-normal-state-map  "H" (kbd "hg_"))
+(define-key evil-normal-state-map  "gk" 'evil-insert-resume)
+(define-key evil-normal-state-map  "gJ" 'evil-join-whitespace) ;;; notmodified
 (set-in-all-evil-states-but-insert "h" 'evil-yank)
-(set-in-all-evil-states-but-insert "H" 'evil-yank-line)
-(define-key evil-normal-state-map "H" (kbd "hg_"))
-(define-key evil-normal-state-map "gk" 'evil-insert-resume)
-(define-key evil-normal-state-map "gJ" 'evil-join-whitespace) ;;; notmodified
+;; (set-in-all-evil-states-but-insert "H" 'evil-yank-line)
 
 
 ;; window commands

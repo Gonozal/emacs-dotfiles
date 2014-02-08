@@ -21,3 +21,7 @@ session*
 temps
 .tern-port
 .cask
+.places
+ac-comphist.dat
+/elpa-bak/
+/auto-save-list

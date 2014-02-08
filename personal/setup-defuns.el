@@ -6,6 +6,7 @@
 (require 'evil)
 (require 'evil-leader)
 (require 'ace-jump-mode)
+(require 'haskell-doc)
 
 (defun toggle-fullscreen ()
   "Toggle full screen."
@@ -124,6 +125,49 @@ Otherwise call `surround-delete'."
   "Edit the `user-init-file', in another window."
   (interactive)
   (find-file user-init-file))
+
+;;;;;;;;;;;;;;;;;;;;;;
+;; haskell commands ;;
+;;;;;;;;;;;;;;;;;;;;;;
+
+(defun haskell-get-type ()
+  "Nothing."
+  (interactive)
+  (message (haskell-get-type-string)))
+
+(defun haskell-get-type-string ()
+  "Gets the type of expression at cursor."
+  (let ((cmd (format
+                 "hdevtools type %S %d %d | head -n1 | cut -d \" \" -f 5- | cut -d '\"' -f2"
+                 (buffer-file-name)
+                 (line-number-at-pos)
+                 (current-column)
+                 )))
+    (replace-regexp-in-string "\n$" "" (shell-command-to-string cmd))))
+
+(defun haskell-doc-mode-print-current-symbol-info ()
+  "Print the type of the symbol under the cursor.
+
+This function is run by an idle timer to print the type
+ automatically if `haskell-doc-mode' is turned on."
+  (and haskell-doc-mode
+       (not (eobp))
+       (not executing-kbd-macro)
+       ;; Having this mode operate in the minibuffer makes it impossible to
+       ;; see what you're doing.
+       (not (eq (selected-window) (minibuffer-window)))
+       ;; take a nap, if run straight from post-command-hook.
+       (if (fboundp 'run-with-idle-timer) t
+         (sit-for haskell-doc-idle-delay))
+       ;; good morning! read the word under the cursor for breakfast
+       (haskell-get-type)))
+       ;; ;; ToDo: find surrounding fct
+       ;; (cond ((eq current-symbol current-fnsym)
+       ;;        (haskell-doc-show-type current-fnsym))
+       ;;       (t
+       ;;        (or nil ; (haskell-doc-print-var-docstring current-symbol)
+       ;;            (haskell-doc-show-type current-fnsym)))))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Fontlock and composition ;;
