@@ -33,6 +33,61 @@
   (kill-line (- 1 arg))
   (indent-according-to-mode))
 
+;; js2 and general line break / indentation for curly braces and return
+(defun return-gen-embrace()
+  "Match an open brace at the end of a line
+with a closing brace (if required), put point on a
+empty line between the braces, and indent the new lines.
+
+So if before
+you had:
+
+   pubic void function () {
+			   ^
+You now have:
+
+   pubic void function () {
+
+   } ^
+
+Point must be at the end of the line, or at a } character
+followed by the end of the line.
+
+If it thinks a matching close brace already exists a new one is not inserted.
+Before:
+   pubic void function () {
+   }                       ^
+After:
+   pubic void function () {
+
+   } ^"
+  (interactive)
+  (if (or (eq (point) (point-min))
+	  (save-excursion
+	    (backward-char)
+	    (not (looking-at "{},?$"))))
+      (newline-and-indent)
+    ;; else
+    (progn
+      (newline-and-indent)
+      (newline-and-indent)
+      (when (not (looking-at "}"))
+	(insert "}")
+	(c-indent-command))
+      (forward-line -1)
+      (c-indent-command))))
+
+(defun js2-electric-return ()
+"Invokes `jde-gen-embrace' to close an open brace at the end of a line."
+  (interactive)
+  (if  ;; the current line ends at an open brace.
+       (and
+	(save-excursion
+	  (re-search-backward "{\\s-*" (line-beginning-position) t))
+	(looking-at "},?\\s-*$"))
+      (return-gen-embrace)
+    (call-interactively 'js2-line-break)))
+
 ;; In a region, increment the first numbers in each row
 ;; to be ascending from top to bottom
 (defun inc-num-region (p m)
@@ -130,43 +185,43 @@ Otherwise call `surround-delete'."
 ;; haskell commands ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
-(defun haskell-get-type ()
-  "Nothing."
-  (interactive)
-  (message (haskell-get-type-string)))
+;; (defun haskell-get-type ()
+;;   "Nothing."
+;;   (interactive)
+;;   (message (haskell-get-type-string)))
 
-(defun haskell-get-type-string ()
-  "Gets the type of expression at cursor."
-  (let ((cmd (format
-                 "hdevtools type %S %d %d | head -n1 | cut -d \" \" -f 5- | cut -d '\"' -f2"
-                 (buffer-file-name)
-                 (line-number-at-pos)
-                 (current-column)
-                 )))
-    (replace-regexp-in-string "\n$" "" (shell-command-to-string cmd))))
+;; (defun haskell-get-type-string ()
+;;   "Gets the type of expression at cursor."
+;;   (let ((cmd (format
+;;                  "hdevtools type %S %d %d | head -n1 | cut -d \" \" -f 5- | cut -d '\"' -f2"
+;;                  (buffer-file-name)
+;;                  (line-number-at-pos)
+;;                  (current-column)
+;;                  )))
+;;     (replace-regexp-in-string "\n$" "" (shell-command-to-string cmd))))
 
-(defun haskell-doc-mode-print-current-symbol-info ()
-  "Print the type of the symbol under the cursor.
+;; (defun haskell-doc-mode-print-current-symbol-info ()
+;;   "Print the type of the symbol under the cursor.
 
-This function is run by an idle timer to print the type
- automatically if `haskell-doc-mode' is turned on."
-  (and haskell-doc-mode
-       (not (eobp))
-       (not executing-kbd-macro)
-       ;; Having this mode operate in the minibuffer makes it impossible to
-       ;; see what you're doing.
-       (not (eq (selected-window) (minibuffer-window)))
-       ;; take a nap, if run straight from post-command-hook.
-       (if (fboundp 'run-with-idle-timer) t
-         (sit-for haskell-doc-idle-delay))
-       ;; good morning! read the word under the cursor for breakfast
-       (haskell-get-type)))
-       ;; ;; ToDo: find surrounding fct
-       ;; (cond ((eq current-symbol current-fnsym)
-       ;;        (haskell-doc-show-type current-fnsym))
-       ;;       (t
-       ;;        (or nil ; (haskell-doc-print-var-docstring current-symbol)
-       ;;            (haskell-doc-show-type current-fnsym)))))))
+;; This function is run by an idle timer to print the type
+;;  automatically if `haskell-doc-mode' is turned on."
+;;   (and haskell-doc-mode
+;;        (not (eobp))
+;;        (not executing-kbd-macro)
+;;        ;; Having this mode operate in the minibuffer makes it impossible to
+;;        ;; see what you're doing.
+;;        (not (eq (selected-window) (minibuffer-window)))
+;;        ;; take a nap, if run straight from post-command-hook.
+;;        (if (fboundp 'run-with-idle-timer) t
+;;          (sit-for haskell-doc-idle-delay))
+;;        ;; good morning! read the word under the cursor for breakfast
+;;        (haskell-get-type)))
+;;        ;; ;; ToDo: find surrounding fct
+;;        ;; (cond ((eq current-symbol current-fnsym)
+;;        ;;        (haskell-doc-show-type current-fnsym))
+;;        ;;       (t
+;;        ;;        (or nil ; (haskell-doc-print-var-docstring current-symbol)
+;;        ;;            (haskell-doc-show-type current-fnsym)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -474,30 +529,30 @@ Repeated invocations toggle between the two most recently open buffers."
 ;; Window management ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun rotate-windows ()
-  "Rotate your windows"
-  (interactive)
-  (cond ((not (> (count-windows)1))
-         (message "You can't rotate a single window!"))
-        (t
-         (setq i 1)
-         (setq numWindows (count-windows))
-         (while  (< i numWindows)
-           (let* (
-                  (w1 (elt (window-list) i))
-                  (w2 (elt (window-list) (+ (% i numWindows) 1)))
+;; (defun rotate-windows ()
+;;   "Rotate your windows"
+;;   (interactive)
+;;   (cond ((not (> (count-windows)1))
+;;          (message "You can't rotate a single window!"))
+;;         (t
+;;          (setq i 1)
+;;          (setq numWindows (count-windows))
+;;          (while  (< i numWindows)
+;;            (let* (
+;;                   (w1 (elt (window-list) i))
+;;                   (w2 (elt (window-list) (+ (% i numWindows) 1)))
 
-                  (b1 (window-buffer w1))
-                  (b2 (window-buffer w2))
+;;                   (b1 (window-buffer w1))
+;;                   (b2 (window-buffer w2))
 
-                  (s1 (window-start w1))
-                  (s2 (window-start w2))
-                  )
-             (set-window-buffer w1  b2)
-             (set-window-buffer w2 b1)
-             (set-window-start w1 s2)
-             (set-window-start w2 s1)
-             (setq i (1+ i)))))))
+;;                   (s1 (window-start w1))
+;;                   (s2 (window-start w2))
+;;                   )
+;;              (set-window-buffer w1  b2)
+;;              (set-window-buffer w2 b1)
+;;              (set-window-start w1 s2)
+;;              (set-window-start w2 s1)
+;;              (setq i (1+ i)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
