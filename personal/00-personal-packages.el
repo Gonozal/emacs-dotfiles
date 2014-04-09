@@ -13,51 +13,51 @@
 (add-to-list 'load-path "~/.emacs.d/personal-packages/evil-org-mode/")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/org-mode/lisp")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/org-mode/lisp/contrib/lisp")
-(add-to-list 'load-path "~/.emacs.d/personal/")
 (add-to-list 'load-path "~/.emacs.d/personal/evil/")
+(add-to-list 'load-path "~/.emacs.d/personal/misc/")
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 
 (add-to-list 'exec-path "~/.cabal/bin")
 
-(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
+;; (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
 
 (prelude-require-packages
  '(
    ;; evil and plugins
    evil surround evil-numbers evil-nerd-commenter evil-leader evil-paredit
-        ;; javascript
-        js2-mode js2-refactor ac-js2 tern tern-auto-complete
-        ;; grep etc
-        ag wgrep wgrep-ag
-        ;; visual
-        diff-hl linum-relative rainbow-delimiters browse-kill-ring popwin
-        highlight-indentation
-        pos-tip
-        ;; ruby
-        rvm robe rinari ruby-electric ruby-block
-        ;; Latex AcuTex
-        auctex ac-math outline-magic
-        ;; clojure
-        nrepl ac-nrepl
-        ;; misc language support
-        slim-mode coffee-mode nginx-mode scala-mode2
-        ;; haskell
-        ghc hi2
-        ;; golang
-        go-autocomplete
-        ;; html
-        evil-matchit
-        ;; editing
-        move-text tagedit yasnippet smartparens auto-complete
-        emmet-mode dash-at-point
-        ;; flycheck-color-mode-line
-        flycheck-haskell
-        exec-path-from-shell
-        buffer-move
-        restclient
-        grizzl
-        flx-ido
-        midnight))
+   ;; javascript
+   js2-mode js2-refactor ac-js2 tern tern-auto-complete
+   ;; grep etc
+   ag wgrep wgrep-ag
+   ;; visual
+   diff-hl linum-relative rainbow-delimiters browse-kill-ring popwin
+   highlight-indentation
+   pos-tip
+   ;; ruby
+   rvm robe rinari ruby-electric ruby-block
+   ;; Latex AcuTex
+   auctex ac-math outline-magic
+   ;; clojure
+   nrepl ac-nrepl
+   ;; misc language support
+   slim-mode coffee-mode nginx-mode scala-mode2
+   ;; haskell
+   ghc hi2
+   ;; golang
+   go-autocomplete
+   ;; html
+   evil-matchit
+   ;; editing
+   move-text tagedit yasnippet smartparens auto-complete
+   emmet-mode dash-at-point
+   ;; flycheck-color-mode-line
+   flycheck-haskell
+   exec-path-from-shell
+   buffer-move
+   restclient
+   grizzl
+   flx-ido
+   midnight))
 
 (require 'evil)
 (require 'evil-numbers)
@@ -96,7 +96,6 @@
 
 ;; Require custom defuns
 (require 'setup-defuns)
-;; (require 'evil-custom-maps)
 
 ;; GC tuninG
 (setq gc-cons-threshold 50000000)
@@ -106,16 +105,16 @@
 
 ;; Set Font Face
 (set-face-attribute 'mode-line nil :box nil
-                    :family "Source Code Pro"
+                    :family "Source Code Pro for Powerline"
                     :height 100 :weight 'normal)
 (set-face-attribute 'mode-line-inactive nil :box nil)
 (set-face-attribute 'default nil
-                    :family "Source Code Pro"
+                    :family "Source Code Pro for Powerline"
                     :height 100 :weight 'normal)
 
 (disable-theme 'molokai)
 (disable-theme 'zenburn)
-(setq solarized-distinct-fringe-background t)
+;; (setq solarized-distinct-fringe-background t)
 ;; powerline solarized customization
 (load-theme 'solarized-light t) ; Load the best theme ever
 (powerline-default-theme)        ; load powerline
@@ -182,6 +181,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Basic plugins setup ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; always use smartparens
+(smartparens-global-mode t)
 
 ;; use ag coloring
 (setq ag-highlight-search t)
@@ -345,6 +347,39 @@
 
 (setq dabbrev-friend-buffer-function 'sanityinc/dabbrev-friend-buffer)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Multiple Cursors Evil hack ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; see https://github.com/magnars/multiple-cursors.el/issues/19
+(defvar my-mc-evil-previous-state nil)
+
+(defun my-mc-evil-switch-to-insert-state ()
+  (when (and (bound-and-true-p evil-mode)
+             (not (memq evil-state '(insert emacs))))
+    (setq my-mc-evil-previous-state evil-state)
+    (evil-insert 1)))
+
+(defun my-mc-evil-back-to-previous-state ()
+  (when my-mc-evil-previous-state
+    (unwind-protect
+        (case my-mc-evil-previous-state
+          ((normal visual) (evil-force-normal-state))
+          (t (message "Don't know how to handle previous state: %S"
+                      my-mc-evil-previous-state)))
+      (setq my-mc-evil-previous-state nil))))
+
+(add-hook 'multiple-cursors-mode-enabled-hook
+          'my-mc-evil-switch-to-insert-state)
+(add-hook 'multiple-cursors-mode-disabled-hook
+          'my-mc-evil-back-to-previous-state)
+
+(defun my-rrm-evil-switch-state ()
+  (if rectangular-region-mode
+      (my-mc-evil-switch-to-insert-state)
+    ;; (my-mc-evil-back-to-previous-state)  ; does not work...
+    (setq my-mc-evil-previous-state nil)))
+
+(add-hook 'rectangular-region-mode-hook 'my-rrm-evil-switch-state)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Language customizations ;;
@@ -685,6 +720,10 @@
 ;; Setup hooks ;;
 ;;;;;;;;;;;;;;;;;
 
+;; python jedi completion
+(add-hook 'python-mode-hook 'jedi:setup)
+(setq jedi:complete-on-dot t)
+
 ;; return to normal mode after save
 (add-hook 'after-save-hook 'evil-normal-state)
 
@@ -701,13 +740,14 @@
 (add-hook 'rectangular-region-mode-hook 'my-rrm-evil-switch-state)
 
 ;; haskell
-(add-hook 'flycheck-mode-hook #'flycheck-haskell-setup)
+(add-hook 'flycheck-mode-hook 'flycheck-haskell-setup)
 (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
 (add-hook 'haskell-mode-hook 'haskell-indentation-mode)
 ;; (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
 (add-hook 'haskell-mode-hook 'turn-on-haskell-decl-scan)
 (add-hook 'haskell-mode-hook 'hi2-mode)
 (add-hook 'haskell-mode-hook (lambda ()
+                               (setq ghc-insert-key      "\e]")
                                (ghc-init)
                                (define-key haskell-mode-map (kbd "M-t") 'fiplr-find-file)
                                (flycheck-mode 1)
@@ -725,11 +765,11 @@
 (add-hook 'coffee-mode-hook 'highlight-indentation-current-column-mode)
 (add-hook 'python-mode-hoocoffee-mode-hook 'highlight-indentation-current-column-mode)
 
-;;; autopair messes with multiple cursors, so disable it
-;; (add-hook 'multiple-cursors-mode-enabled-hook (lambda ()
-;;                                                 (autopair-mode -1)))
-;; (add-hook 'multiple-cursors-mode-disabled-hook (lambda ()
-;;                                                 (autopair-mode t)))
+;;; smartparens messes with multiple cursors, so disable it
+(add-hook 'multiple-cursors-mode-enabled-hook (lambda ()
+                                                (smartparens-mode -1)))
+(add-hook 'multiple-cursors-mode-disabled-hook (lambda ()
+                                                (smartparens-mode t)))
 
 ;; ruby
 ;; (add-hook 'ruby-mode-hook #'(lambda () (smartparens-mode -1)))
@@ -975,6 +1015,85 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 (evil-ex-define-cmd "Rename" 'rename-current-buffer-file)
 (evil-ex-define-cmd "Remove" 'delete-current-buffer-file)
+
+;;;;;;;;;;;;;;;;;;
+;; Evil keymaps ;;
+;;;;;;;;;;;;;;;;;;
+(require 'evil-custom-maps)
+
+
+;;;;;;;;;;;;;;;;;;
+;; Evil exchange ;;
+;;;;;;;;;;;;;;;;;;
+(defgroup evil-exchange nil
+  "Easy text exchange operator for Evil."
+  :prefix "evil-exchange"
+  :group 'evil)
+
+(defcustom evil-exchange-key (kbd "gs")
+  "Default binding for evil-exchange."
+  :type `,(if (get 'key-sequence 'widget-type)
+              'key-sequence
+            'sexp)
+  :group 'evil-exchange)
+
+(defcustom evil-exchange-cancel-key (kbd "gS")
+  "Default binding for evil-exchange-cancel."
+  :type `,(if (get 'key-sequence 'widget-type)
+              'key-sequence
+            'sexp)
+  :group 'evil-exchange)
+
+(defvar evil-exchange-position nil "Text position which will be exchanged.")
+
+(evil-define-operator evil-exchange (beg end type)
+  "Exchange two regions with evil motion."
+  :move-point nil
+  (interactive "<R>")
+  (let ((beg-marker (copy-marker beg t))
+        (end-marker (copy-marker end t)))
+    (if (null evil-exchange-position)
+        ;; call without evil-exchange-position set: store region
+        (setq evil-exchange-position (list beg-marker end-marker type))
+      ;; secondary call: do exchange
+      (cl-destructuring-bind
+          (orig-beg orig-end orig-type) evil-exchange-position
+        (cond
+         ;; exchange block region
+         ((and (eq orig-type 'block) (eq type 'block))
+          (let ((orig-rect (delete-extract-rectangle orig-beg orig-end))
+                (curr-rect (delete-extract-rectangle beg-marker end-marker)))
+            (save-excursion
+              (goto-char orig-beg)
+              (insert-rectangle curr-rect)
+              (goto-char beg-marker)
+              (insert-rectangle orig-rect)))
+          (setq evil-exchange-position nil))
+         ;; signal error if regions incompatible
+         ((or (eq orig-type 'block) (eq type 'block))
+          (error "Can't exchange block region with non-block region."))
+         ;; exchange normal region
+         (t
+          (transpose-regions orig-beg orig-end beg end)
+          (setq evil-exchange-position nil))))))
+  ;; place cursor on beginning of line
+  (when (and (evil-called-interactively-p) (eq type 'line))
+    (evil-first-non-blank)))
+
+(defun evil-exchange-cancel ()
+  "Cancel current pending exchange."
+  (interactive)
+  (setq evil-exchange-position nil)
+  (message "Exchange cancelled"))
+
+(defun evil-exchange-install ()
+  "Setting evil-exchange key bindings."
+  (define-key evil-normal-state-map evil-exchange-key 'evil-exchange)
+  (define-key evil-visual-state-map evil-exchange-key 'evil-exchange)
+  (define-key evil-normal-state-map evil-exchange-cancel-key 'evil-exchange-cancel)
+  (define-key evil-visual-state-map evil-exchange-cancel-key 'evil-exchange-cancel))
+
+(evil-exchange-install)
 
 (provide '00-personal-packages)
 ;;; 00-personal-packages ends here

@@ -27,6 +27,7 @@
 
 ;;; code:
 
+(require 'evil)
 
 ;; map multiple states at once (courtesy of Michael Markert;
 ;; http://permalink.gmane.org/gmane.emacs.vim-emulation/1674)
@@ -135,4 +136,4 @@
 
 (provide 'evil-custom-maps)
 
-;;; evil-maps.el ends here
+;;; evil-custom-maps.el ends here

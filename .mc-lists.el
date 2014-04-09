@@ -10,14 +10,20 @@
         org-self-insert-command
         ruby-electric-curlies
         ruby-electric-matching-char
+        sp-backward-delete-char
         ))
 
 (setq mc/cmds-to-run-once
       '(
         ensime-mouse-motion
         evil-backward-char
+        evil-backward-word-begin
         evil-normal-state
+        find-user-init-file
         mac-mwheel-scroll
         ruby-electric-space
+        smex
+        sp--self-insert-command
+        text-scale-decrease
         text-scale-increase
         ))
