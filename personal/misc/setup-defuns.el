@@ -7,6 +7,10 @@
 (require 'evil-leader)
 (require 'ace-jump-mode)
 (require 'haskell-doc)
+(require 'ghc)
+(require 'ghc-process)
+(require 'async)
+(require 'shm)
 
 (defun toggle-fullscreen ()
   "Toggle full screen."
@@ -185,20 +189,86 @@ Otherwise call `surround-delete'."
 ;; haskell commands ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
-;; (defun haskell-get-type ()
-;;   "Nothing."
-;;   (interactive)
-;;   (message (haskell-get-type-string)))
 
-;; (defun haskell-get-type-string ()
-;;   "Gets the type of expression at cursor."
-;;   (let ((cmd (format
-;;                  "hdevtools type %S %d %d | head -n1 | cut -d \" \" -f 5- | cut -d '\"' -f2"
-;;                  (buffer-file-name)
-;;                  (line-number-at-pos)
-;;                  (current-column)
-;;                  )))
-;;     (replace-regexp-in-string "\n$" "" (shell-command-to-string cmd))))
+;; Structured haskell mode text objects
+;; ====================================
+;; not quite ready ...
+;; (evil-define-text-object evil-inner-node (count &optional beg end type)
+;; (evil-inner-object-range count beg end type
+;; #'cds-node-last-exclusive
+;; #'cds-node-first-exclusive))
+
+;; (defun cds-node-first-exclusive (&optional arg)
+;;   (interactive)
+;;   (let ((parent-pair (shm-node-parent (shm-current-workable-node))))
+;;     (let ((parent (cdr parent-pair)))
+;;       (message "beg %s" (shm-node-start parent))
+;;       (goto-char (shm-node-start parent)))))
+
+;; (defun cds-node-last-exclusive (&optional arg)
+;;   (interactive)
+;;   (let ((parent-pair (shm-node-parent (shm-current-workable-node))))
+;;     (let ((parent (cdr parent-pair)))
+;;       (message "end %s" (shm-node-end parent))
+;;       (goto-char (shm-node-end parent)))))
+
+
+;; (evil-define-text-object evil-outer-node (count &optional beg end type)
+;; (evil-inner-object-range count beg end type
+;; #'cds-last-dollar-inclusive
+;; #'cds-first-dollar-inclusive))
+
+;; (defun cds-first-dollar-inclusive (&optional arg)
+;; (interactive)
+;; (save-excursion
+;; (setq cds-temp-first (re-search-backward "\\$" nil t 2))
+;; (goto-char cds-temp-first))
+
+;; (defun cds-last-dollar-inclusive (&optional arg)
+;; (interactive)
+;; (save-excursion
+;; (setq cds-temp-last (re-search-forward "\\$" nil t 1))
+;; (goto-char cds-temp-last))
+
+;; (define-key evil-outer-text-objects-map "n" 'evil-outer-node)
+;; (define-key evil-inner-text-objects-map "n" 'evil-inner-node)
+;; END structured haskell mode text objects
+;; ========================================
+
+(defun ghc-type-obtain-tinfos (modname)
+  (let* ((ln (int-to-string (line-number-at-pos)))
+	 (cn (int-to-string (1+ (current-column))))
+	 (cdir (ghc-get-project-root))
+	 (file (buffer-file-name)))
+    (ghc-read-lisp
+     (lambda ()
+       (cd cdir)
+       (apply 'ghc-call-process ghc-module-command nil t nil
+	      `(,@(ghc-make-ghc-options) "-l" "type" ,file ,modname ,ln ,cn))
+       (goto-char (point-min))
+       (while (search-forward "[Char]" nil t)
+	 (replace-match "String"))))))
+
+(defun haskell-get-type ()
+   "Nothing."
+   (interactive)
+   (message (haskell-get-type-string)))
+
+(defun haskell-get-type-string ()
+  "Gets the type of expression at cursor."
+  (interactive)
+  ;; (let* ((modname (or (ghc-find-module-name) "Main"))
+  ;;        (tinfos (ghc-type-get-tinfos modname))
+  ;;        (tinfo (nth (ghc-type-get-ix) tinfos)))
+  ;;   (nth 4 tinfo)))
+
+  (let ((cmd (format
+                 "hdevtools type %S %d %d | head -n1 | cut -d \" \" -f 5- | cut -d '\"' -f2"
+                 (buffer-file-name)
+                 (line-number-at-pos)
+                 (+ 1 (current-column))
+                 )))
+    (replace-regexp-in-string "\n$" "" (shell-command-to-string cmd))))
 
 ;; (defun haskell-doc-mode-print-current-symbol-info ()
 ;;   "Print the type of the symbol under the cursor.

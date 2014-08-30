@@ -74,6 +74,9 @@
 (define-key evil-normal-state-map  "J" 'evil-join) ;;; notmodified
 (define-key evil-normal-state-map  "l" 'evil-open-below)
 (define-key evil-normal-state-map  "L" 'evil-open-above)
+(define-key evil-normal-state-map  "O" 'evil-window-bottom)
+(define-key evil-normal-state-map  "M" 'evil-window-middle) ;; notmodified
+(define-key evil-normal-state-map  "Y" 'evil-window-top)
 (define-key evil-normal-state-map  "H" (kbd "hg_"))
 (define-key evil-normal-state-map  "gk" 'evil-insert-resume)
 (define-key evil-normal-state-map  "gJ" 'evil-join-whitespace) ;;; notmodified

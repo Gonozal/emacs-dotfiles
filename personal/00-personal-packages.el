@@ -7,15 +7,19 @@
 
 (add-to-list 'load-path "~/.emacs.d/personal-packages/fiplr/")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/powerline/")
+(add-to-list 'load-path "~/.emacs.d/personal-packages/flycheck-hdevtools/")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/fuzzy-el/")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/popup-el/")
+(add-to-list 'load-path "~/.emacs.d/personal-packages/structured-haskell-mode/elisp/")
 (add-to-list 'load-path "~/Development/Scala/ensime/dist/elisp/")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/evil-org-mode/")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/org-mode/lisp")
-(add-to-list 'load-path "~/.emacs.d/personal-packages/org-mode/lisp/contrib/lisp")
+(add-to-list 'load-path "~/.emacs.d/personal-packages/org-mode/contrib/lisp")
+(add-to-list 'load-path "~/.emacs.d/personal-packages/snort-mode/")
 (add-to-list 'load-path "~/.emacs.d/personal/evil/")
 (add-to-list 'load-path "~/.emacs.d/personal/misc/")
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+(add-to-list 'load-path "~/.emacs.d/themes/")
 
 (add-to-list 'exec-path "~/.cabal/bin")
 
@@ -25,6 +29,7 @@
  '(
    ;; evil and plugins
    evil surround evil-numbers evil-nerd-commenter evil-leader evil-paredit
+   evil-exchange
    ;; javascript
    js2-mode js2-refactor ac-js2 tern tern-auto-complete
    ;; grep etc
@@ -42,16 +47,20 @@
    ;; misc language support
    slim-mode coffee-mode nginx-mode scala-mode2
    ;; haskell
-   ghc hi2
+   ghc hi2 hamlet-mode mmm-mode
    ;; golang
    go-autocomplete
+   ;; qt quick qml
+   qml-mode
+   ;; elm-mode
+   elm-mode
    ;; html
    evil-matchit
    ;; editing
    move-text tagedit yasnippet smartparens auto-complete
    emmet-mode dash-at-point
    ;; flycheck-color-mode-line
-   flycheck-haskell
+   ;; flycheck-haskell
    exec-path-from-shell
    buffer-move
    restclient
@@ -63,8 +72,7 @@
 (require 'evil-numbers)
 (require 'evil-leader)
 (require 'evil-matchit)
-(require 'evil-mode-line-color)
-(require 'surround)
+(require 'evil-mode-line-color-dark)
 (require 'powerline)
 (require 'auto-complete)
 (require 'auto-complete-config)
@@ -74,6 +82,7 @@
 (require 'ag)
 (require 'wgrep-ag)
 (require 'move-text)
+; (require 'solarized)
 (require 'browse-kill-ring)
 (require 'restclient)
 (require 'multiple-cursors)
@@ -81,6 +90,7 @@
 (require 'thingatpt+)
 (require 'yasnippet)
 (require 'popwin)
+(require 'shm)
 
 (require 'diff-hl)
 (require 'fiplr)
@@ -91,6 +101,7 @@
 (require 'flycheck)
 (require 'saveplace)
 (require 'midnight)
+(require 'snort-mode)
 
 (autoload 'ghc-init "ghc" nil t)
 
@@ -114,13 +125,15 @@
 
 (disable-theme 'molokai)
 (disable-theme 'zenburn)
-;; (setq solarized-distinct-fringe-background t)
 ;; powerline solarized customization
-(load-theme 'solarized-light t) ; Load the best theme ever
 (powerline-default-theme)        ; load powerline
+;; (setq solarized-distinct-fringe-background t)
+(setq solarized-use-less-bold t)
+(load-theme 'solarized-dark t)  ; Load the best theme ever
 (setq scroll-margin 4)          ; Sane cursor and window movements
 (scroll-bar-mode -1)            ; No scrollbars, thank you
 (global-diff-hl-mode)           ; show visual VCS diffs
+(global-hl-line-mode -1)               ; do not highlight current line
 (global-rainbow-delimiters-mode)
 
 (browse-kill-ring-default-keybindings) ; load defult keybindings for killring browser
@@ -219,7 +232,7 @@
 (global-set-key (kbd "C-c h") 'helm-projectile)
 
 ;; Fiplr
-(setq fiplr-root-markers '(".git"))
+(setq fiplr-root-markers '(".git" ".project"))
 
 ;; Dash at point
 (evil-leader/set-key
@@ -385,6 +398,45 @@
 ;; Language customizations ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; elm language flycheck integration
+(flycheck-define-checker elm-elm
+  "An Elm syntax and style checker using the elm compiler."
+  :command ("elm" "-p" "-m" source)
+  :error-patterns
+  ((error line-start "Error on line " line
+          ", column " column (zero-or-more not-newline) ":\n"
+          (message) line-end)
+   (error line-start "Parse Error at (line " line
+          ", column " column (zero-or-more not-newline) "):\n"
+          (message) line-end)
+   (error line-start "Type Error on line " line
+          ", column " column (zero-or-more not-newline) ":\n"
+          (message
+           (one-or-more " ") (one-or-more not-newline)
+           "\n" "\n"
+           (one-or-more " ")
+           (one-or-more not-newline)
+           "\n"
+           (one-or-more " ")
+           (one-or-more not-newline))
+          line-end)
+   (error line-start "Type Error between lines " line
+          (zero-or-more not-newline) ":\n"
+          (+? (or any "\n"))
+          "\n"
+          (message
+           (one-or-more " ")
+           "Expected Type:"
+           (one-or-more not-newline)
+           "\n"
+           (one-or-more " ")
+           (one-or-more not-newline))
+          line-end)
+   )
+  :modes elm-mode)
+
+(add-to-list 'flycheck-checkers 'elm-elm)
+
 ;; Golang
 (when (not (getenv "GOPATH"))
   (setenv "GOPATH" "/Users/arne/go"))
@@ -439,6 +491,17 @@
 (add-to-list 'auto-mode-alist '("\\.text\\'" . gfm-mode))
 (add-to-list 'auto-mode-alist '("\\.txt\\'" . gfm-mode))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; auctex customization ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+(eval-after-load "tex"
+  '(setcdr (assoc "LaTeX" TeX-command-list)
+          '("%`%l%(mode) -shell-escape%' %t"
+          TeX-run-TeX nil (latex-mode doctex-mode) :help "Run LaTeX")
+    )
+  )
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Scala IDE configuration ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -468,7 +531,20 @@
   '(progn
      (require 'haskell-process)
      (require 'ac-ghc-mod)
-     (require 'flycheck-haskell)
+     (require 'shm-case-split)
+     (require 'mmm-vars)
+     (require 'mmm-auto)
+
+     ;; hamlet inline syntax highlighting
+     (setq mmm-global-mode 'maybe)
+     (mmm-add-classes
+      '((hamlet-quasiquote
+         :submode hamlet-mode
+         :delimiter-mode nil
+         :front "\\[x?hamlet|"
+         :back "|\\]")))
+     (mmm-add-mode-ext-class 'haskell-mode nil 'hamlet-quasiquote)
+
      (push "*GHC Info*" popwin:special-display-config)
      (setq haskell-stylish-on-save t)
      (define-key haskell-mode-map (kbd "M-s") 'haskell-mode-save-buffer)
@@ -480,10 +556,15 @@
      (define-key haskell-mode-map (kbd "C-c C-t") 'haskell-process-do-type)
      (define-key haskell-mode-map (kbd "C-c C-i") 'haskell-process-do-info)
      (define-key haskell-mode-map (kbd "C-c M-.") nil)
+     (define-key shm-map (kbd "C-n") 'shm/newline-indent)
+     (define-key shm-map (kbd "C-c C-n") 'shm/swing-down)
+     (define-key shm-map (kbd "C-c C-i") 'shm/swing-up)
      (define-key haskell-mode-map (kbd "C-c C-d") nil)
+     (evil-define-key 'normal haskell-mode-map ")" (lambda ()
+                                                     (interactive)
+                                                     (progn (shm/reparse)
+                                                            (shm/goto-parent-end))))
      (define-key haskell-mode-map (kbd "C-,") " <- ")
-     (define-key haskell-mode-map (kbd "C-$") " <$> ")
-     (define-key haskell-mode-map (kbd "C-$") " <*> ")
      (define-key flyspell-mode-map (kbd "C-,") nil)
      ;; evil haskell keybindings
      (evil-leader/set-key-for-mode 'haskell-mode
@@ -502,8 +583,8 @@
                (haskell-process-insert-type))
        "ht" 'ghc-show-type
        "hl" 'haskell-process-load-file
-       "hi" 'haskell-process-do-info
-       "hd" 'ghc-browse-document
+       "hi" 'haskell-get-type
+       "hc" 'shm/case-split
        )
      ))
 
@@ -523,6 +604,8 @@
      (setq ac-js2-evaluate-calls t)
      (setq httpd-port 9090)
      (setq js2-mirror-mode nil)
+     (tern-mode 1)
+     (flycheck-mode 1)
      (setq-default js2-global-externs
                    '("module" "require" "buster" "sinon" "assert" "refute"
                      "setTimeout" "clearTimeout" "setInterval" "clearInterval"
@@ -549,12 +632,10 @@
      )
   )
 
-(eval-after-load 'auto-complete
-  '(eval-after-load 'tern
-     '(progn
-        (require 'go-autocomplete)
-        (require 'tern-auto-complete)
-        (tern-ac-setup))))
+(eval-after-load 'tern
+  '(progn
+     (require 'tern-auto-complete)
+     (tern-ac-setup)))
 
 
 (defun javascript-unicode ()
@@ -583,6 +664,7 @@
 
 ;; compile to pdf
 (setq TeX-PDF-mode t)
+
 
 (setq TeX-view-program-selection '((output-pdf "PDF Viewer")))
 (setq TeX-view-program-lisT
@@ -619,14 +701,18 @@
 (setq auto-mode-alist  (cons '("Gemfile$" . ruby-mode) auto-mode-alist))
 (setq auto-mode-alist  (cons '("Gemfile.lock$" . ruby-mode) auto-mode-alist))
 (setq auto-mode-alist  (cons '("Rakefile$" . ruby-mode) auto-mode-alist))
+(add-to-list 'auto-mode-alist '("\\.hamlet$" . hamlet-mode))
+(add-to-list 'auto-mode-alist '("\\.lucius$" . css-mode))
+(add-to-list 'auto-mode-alist '("\\.julius$" . js2-mode))
 (add-to-list 'auto-mode-alist '("\\.rake$" . ruby-mode))
 
 ;; org mode
 (add-to-list 'auto-mode-alist '("\\. org \\'" . org-mode))
-(eval-after-load 'org-mode
+(eval-after-load 'ox
   '(progn
      (require 'evil-org)
-     (require 'org-latex)
+     (require 'ox-latex)
+     (require 'ox-koma-letter)
      ;; (require 'ox-latex)
      (setq org-export-in-background t)
      (setq org-export-latex-listings t)
@@ -639,6 +725,7 @@
 \\usepackage{lmodern}
 \\usepackage{xunicode}
 \\usepackage{xltxtra}
+\\usepackage{minted}
 \\usepackage[xetex]{hyperref}
 \\usepackage{geometry}
 \\geometry{a4paper, textwidth=6.5in, textheight=10in, marginparsep=7pt, marginparwidth=.6in}
@@ -658,6 +745,11 @@
            (remove '("AUTO" "inputenc" t) org-latex-default-packages-alist))
 
      (add-to-list 'org-latex-packages-alist '("" "xltxtra" t))
+     ;; Add minted to the defaults packages to include when exporting.
+     (add-to-list 'org-latex-packages-alist '("" "minted"))
+     ;; Tell the latex export to use the minted package for source
+     ;; code coloration.
+     (setq org-latex-listings 'minted)
 
      ;; org to latex customisations, -shell-escape needed for minted
      (setq org-latex-to-pdf-process          ; for regular export
@@ -740,18 +832,26 @@
 (add-hook 'rectangular-region-mode-hook 'my-rrm-evil-switch-state)
 
 ;; haskell
-(add-hook 'flycheck-mode-hook 'flycheck-haskell-setup)
-(add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
-(add-hook 'haskell-mode-hook 'haskell-indentation-mode)
+;; (eval-after-load 'flycheck
+;;   '(add-hook 'flycheck-mode-hook #'flycheck-haskell-setup))
+(eval-after-load 'flycheck
+ '(require 'flycheck-hdevtools))
+;; (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
+;; (add-hook 'haskell-mode-hook 'haskell-indentation-mode)
 ;; (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
-(add-hook 'haskell-mode-hook 'turn-on-haskell-decl-scan)
-(add-hook 'haskell-mode-hook 'hi2-mode)
+;; (add-hook 'haskell-mode-hook 'turn-on-haskell-decl-scan)
+;; (add-hook 'haskell-mode-hook 'hi2-mode)
 (add-hook 'haskell-mode-hook (lambda ()
                                (setq ghc-insert-key      "\e]")
                                (ghc-init)
+                               (setq ghc-debug t)
+                               (turn-on-haskell-font-lock)
                                (define-key haskell-mode-map (kbd "M-t") 'fiplr-find-file)
                                (flycheck-mode 1)
+                               (structured-haskell-mode 1)
+                               (haskell-indentation-mode -1)
                                (setq tab-width 4)
+                               (haskell-auto-insert-module-template)
                                (setq ac-sources
                                      (append '(ac-source-ghc-module
                                                ac-source-ghc-symbol
@@ -762,6 +862,7 @@
 ;; Show indentation guides in languages with semantic indentation
 (add-hook 'slim-mode-hook 'highlight-indentation-current-column-mode)
 (add-hook 'yaml-mode-hook 'highlight-indentation-current-column-mode)
+;; (add-hook 'haskell-mode-hook 'highlight-indentation-current-column-mode)
 (add-hook 'coffee-mode-hook 'highlight-indentation-current-column-mode)
 (add-hook 'python-mode-hoocoffee-mode-hook 'highlight-indentation-current-column-mode)
 
@@ -810,12 +911,6 @@
 (add-hook 'flyspell-mode-hook
           (lambda ()
             (ac-flyspell-workaround)))
-
-;; activate tern in JS mode
-(add-hook 'js2-mode-hook (lambda () (tern-mode t)))
-
-;; activate flycheck ind js2-mode
-(add-hook 'js2-mode-hook (lambda () (flycheck-mode 1)))
 
 ;; use latex ac sources
 (add-hook 'latex-mode-hook 'ac-latex-mode-setup)
