@@ -10,7 +10,6 @@
 (require 'ghc)
 (require 'ghc-process)
 (require 'async)
-(require 'shm)
 
 (defun toggle-fullscreen ()
   "Toggle full screen."

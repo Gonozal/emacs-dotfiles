@@ -10,13 +10,10 @@
 (add-to-list 'load-path "~/.emacs.d/personal-packages/flycheck-hdevtools/")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/fuzzy-el/")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/popup-el/")
-(add-to-list 'load-path "~/.emacs.d/personal-packages/structured-haskell-mode/elisp/")
 (add-to-list 'load-path "~/Development/Scala/ensime/dist/elisp/")
-(add-to-list 'load-path "~/.emacs.d/personal-packages/evil-org-mode/")
-(add-to-list 'load-path "~/.emacs.d/personal-packages/org-mode/lisp")
-(add-to-list 'load-path "~/.emacs.d/personal-packages/org-mode/contrib/lisp")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/snort-mode/")
 (add-to-list 'load-path "~/.emacs.d/personal/evil/")
+(add-to-list 'load-path "~/.emacs.d/personal/languages/")
 (add-to-list 'load-path "~/.emacs.d/personal/misc/")
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 (add-to-list 'load-path "~/.emacs.d/themes/")
@@ -30,37 +27,22 @@
    ;; evil and plugins
    evil surround evil-numbers evil-nerd-commenter evil-leader evil-paredit
    evil-exchange
-   ;; javascript
-   js2-mode js2-refactor ac-js2 tern tern-auto-complete
    ;; grep etc
    ag wgrep wgrep-ag
    ;; visual
    diff-hl linum-relative rainbow-delimiters browse-kill-ring popwin
    highlight-indentation
    pos-tip
-   ;; ruby
-   rvm robe rinari ruby-electric ruby-block
-   ;; Latex AcuTex
-   auctex ac-math outline-magic
-   ;; clojure
-   nrepl ac-nrepl
    ;; misc language support
    slim-mode coffee-mode nginx-mode scala-mode2
-   ;; haskell
-   ghc hi2 hamlet-mode mmm-mode
-   ;; golang
-   go-autocomplete
    ;; qt quick qml
    qml-mode
-   ;; elm-mode
-   elm-mode
    ;; html
-   evil-matchit
+   evil-matchit evil-visualstar
    ;; editing
-   move-text tagedit yasnippet smartparens auto-complete
+   move-text tagedit yasnippet smartparens company
    emmet-mode dash-at-point
    ;; flycheck-color-mode-line
-   ;; flycheck-haskell
    exec-path-from-shell
    buffer-move
    restclient
@@ -70,12 +52,11 @@
 
 (require 'evil)
 (require 'evil-numbers)
+(require 'evil-visualstar)
 (require 'evil-leader)
 (require 'evil-matchit)
 (require 'evil-mode-line-color-dark)
 (require 'powerline)
-(require 'auto-complete)
-(require 'auto-complete-config)
 (require 'popup)
 (require 'fuzzy)
 
@@ -86,11 +67,9 @@
 (require 'browse-kill-ring)
 (require 'restclient)
 (require 'multiple-cursors)
-(require 'org)
 (require 'thingatpt+)
 (require 'yasnippet)
 (require 'popwin)
-(require 'shm)
 
 (require 'diff-hl)
 (require 'fiplr)
@@ -103,25 +82,34 @@
 (require 'midnight)
 (require 'snort-mode)
 
-(autoload 'ghc-init "ghc" nil t)
+(require 'company)
 
 ;; Require custom defuns
 (require 'setup-defuns)
 
+;; load language customizations
+(require 'custom-ruby)
+(require 'custom-haskell)
+(require 'custom-elm)
+(require 'custom-javascript)
+(require 'custom-latex)
+
 ;; GC tuninG
 (setq gc-cons-threshold 50000000)
+
 ;;;;;;;;;;;;;;;
 ;; Setup GUI ;;
 ;;;;;;;;;;;;;;;
 
 ;; Set Font Face
 (set-face-attribute 'mode-line nil :box nil
-                    :family "Source Code Pro for Powerline"
+                    :family "Hasklig"
                     :height 100 :weight 'normal)
 (set-face-attribute 'mode-line-inactive nil :box nil)
 (set-face-attribute 'default nil
-                    :family "Source Code Pro for Powerline"
+                    :family "Hasklig"
                     :height 100 :weight 'normal)
+(setq haskell-font-lock-symbols t)
 
 (disable-theme 'molokai)
 (disable-theme 'zenburn)
@@ -175,21 +163,6 @@
 (setq tab-Stop-list
       '(2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48 50 52))
 
-(custom-set-variables
- '(js2-basic-offset 2)
- '(js2-bounce-indent-p t)
- '(js2-pretty-multiline-declarations 'all)
- )
-
-(setq js-indent-level 2)
-(setq-default js2-basic-offset 2)
-(setq js2-basic-offset 2)
-
-(eval-after-load 'js2-mode
-  '(progn
-     (define-key js2-mode-map (kbd "RET") 'js2-electric-return)
-     )
-  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Basic plugins setup ;;
@@ -225,11 +198,10 @@
 (add-hook 'ido-setup-hook 'ido-define-keys)
 (add-hook 'ido-minibuffer-setup-hook 'ido-disable-line-truncation)
 ;; More intuitive ido key bindings now that ido is vertical
-(ac-set-trigger-key "TAB") ; AFTER input prefix, press TAB key ASAP
+;; (ac-set-trigger-key "TAB") ; AFTER input prefix, press TAB key ASAP
 
 ;; projectile
 (projectile-global-mode)
-(global-set-key (kbd "C-c h") 'helm-projectile)
 
 ;; Fiplr
 (setq fiplr-root-markers '(".git" ".project"))
@@ -313,52 +285,70 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Diminish modeline names ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(rename-modeline "js2-mode" js2-mode "JS2")
 
 (diminish 'flyspell-mode "")
 (diminish 'whitespace-mode "")
 (diminish 'undo-tree-mode "")
 (diminish 'projectile-mode "")
 (diminish 'flycheck-mode " ✓ ")
+;; (diminish 'guru-mode "")
+(diminish 'company-mode " ⋯ ")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; auto-complete setup ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(global-auto-complete-mode t)
-(setq ac-use-menu-map t)
-(setq ac-expand-on-auto-complete nil)
-(setq ac-dwim nil) ; To get pop-ups with docs even if a word is uniquely completed
-(setq ac-delay 0.05)
-(setq ac-auto-show-menu 0.1)
-(setq ac-use-fuzzy 1)
-(setq ac-quick-help-delay 1)
-(setq ac-quick-help-height 60)
+;; (global-auto-complete-mode t)
+;; (setq ac-use-menu-map t)
+;; (setq ac-expand-on-auto-complete nil)
+;; (setq ac-dwim nil) ; To get pop-ups with docs even if a word is uniquely completed
+;; (setq ac-delay 0.05)
+;; (setq ac-auto-show-menu 0.1)
+;; (setq ac-use-fuzzy 1)
+;; (setq ac-quick-help-delay 1)
+;; (setq ac-quick-help-height 60)
 
-(ac-set-trigger-key "TAB")
-(ac-set-trigger-key "<tab>")
-(define-key ac-completing-map "\t" 'ac-complete)
+;; (ac-set-trigger-key "TAB")
+;; (ac-set-trigger-key "<tab>")
+;; (define-key ac-completing-map "\t" 'ac-complete)
 
-;; extra modes auto-complete must support
-(dolist (mode '(magit-log-edit-mode log-edit-mode org-mode text-mode haml-mode
-                                    sass-mode yaml-mode csv-mode espresso-mode haskell-mode
-                                    html-mode nxml-mode sh-mode smarty-mode clojure-mode
-                                    lisp-mode textile-mode markdown-mode tuareg-mode
-                                    js2-mode js3-mode css-mode less-css-mode coffee-mode scss-mode
-                                    slim-mode))
-  (add-to-list 'ac-modes mode))
+;; ;; extra modes auto-complete must support
+;; (dolist (mode '(magit-log-edit-mode log-edit-mode org-mode text-mode haml-mode
+;;                                     sass-mode yaml-mode csv-mode espresso-mode haskell-mode
+;;                                     html-mode nxml-mode sh-mode smarty-mode clojure-mode
+;;                                     lisp-mode textile-mode markdown-mode tuareg-mode
+;;                                     js2-mode css-mode less-css-mode coffee-mode scss-mode
+;;                                     slim-mode))
+;;   (add-to-list 'ac-modes mode))
 
-(set-default 'ac-sources
-             '(ac-source-abbrev
-               ac-source-yasnippet
-               ac-source-dictionary
-               ac-source-words-in-buffer
-               ac-source-words-in-same-mode-buffers
-               ac-source-semantic))
+;; (set-default 'ac-sources
+;;              '(ac-source-abbrev
+;;                ac-source-yasnippet
+;;                ac-source-dictionary
+;;                ac-source-words-in-buffer
+;;                ac-source-words-in-same-mode-buffers
+;;                ac-source-semantic))
 
-(ac-config-default)
+;; (ac-config-default)
 
-(setq dabbrev-friend-buffer-function 'sanityinc/dabbrev-friend-buffer)
+;; (setq dabbrev-friend-buffer-function 'sanityinc/dabbrev-friend-buffer)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+;; Company mode setup ;;
+;;;;;;;;;;;;;;;;;;;;;;;;
+
+(global-company-mode 1)
+(setq company-idle-delay 0.15)
+(setq company-tooltip-limit 10)
+(setq company-minimum-prefix-length 2)
+;; invert the navigation direction if the the completion popup-isearch-match
+;; is displayed on top (happens near the bottom of windows)
+(setq company-tooltip-flip-when-above t)
+
+(define-key company-active-map (kbd "C-n") 'company-select-next-or-abort)
+(define-key company-active-map (kbd "C-p") 'company-select-previous-or-abort)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Multiple Cursors Evil hack ;;
@@ -398,79 +388,11 @@
 ;; Language customizations ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; elm language flycheck integration
-(flycheck-define-checker elm-elm
-  "An Elm syntax and style checker using the elm compiler."
-  :command ("elm" "-p" "-m" source)
-  :error-patterns
-  ((error line-start "Error on line " line
-          ", column " column (zero-or-more not-newline) ":\n"
-          (message) line-end)
-   (error line-start "Parse Error at (line " line
-          ", column " column (zero-or-more not-newline) "):\n"
-          (message) line-end)
-   (error line-start "Type Error on line " line
-          ", column " column (zero-or-more not-newline) ":\n"
-          (message
-           (one-or-more " ") (one-or-more not-newline)
-           "\n" "\n"
-           (one-or-more " ")
-           (one-or-more not-newline)
-           "\n"
-           (one-or-more " ")
-           (one-or-more not-newline))
-          line-end)
-   (error line-start "Type Error between lines " line
-          (zero-or-more not-newline) ":\n"
-          (+? (or any "\n"))
-          "\n"
-          (message
-           (one-or-more " ")
-           "Expected Type:"
-           (one-or-more not-newline)
-           "\n"
-           (one-or-more " ")
-           (one-or-more not-newline))
-          line-end)
-   )
-  :modes elm-mode)
-
-(add-to-list 'flycheck-checkers 'elm-elm)
-
 ;; Golang
 (when (not (getenv "GOPATH"))
   (setenv "GOPATH" "/Users/arne/go"))
 
-;; Ruby
-(add-to-list 'auto-mode-alist '("\\.rake\\'" . ruby-mode))
-(add-to-list 'auto-mode-alist '("Rakefile\\'" . ruby-mode))
-(add-to-list 'auto-mode-alist '("\\.gemspec\\'" . ruby-mode))
-(add-to-list 'auto-mode-alist '("\\.ru\\'" . ruby-mode))
-(add-to-list 'auto-mode-alist '("Gemfile\\'" . ruby-mode))
-(add-to-list 'auto-mode-alist '("Guardfile\\'" . ruby-mode))
-(add-to-list 'auto-mode-alist '("Capfile\\'" . ruby-mode))
-(add-to-list 'auto-mode-alist '("\\.thor\\'" . ruby-mode))
-(add-to-list 'auto-mode-alist '("Thorfile\\'" . ruby-mode))
-(add-to-list 'auto-mode-alist '("Vagrantfile\\'" . ruby-mode))
-(add-to-list 'auto-mode-alist '("\\.jbuilder\\'" . ruby-mode))
-(add-to-list 'auto-mode-alist '("Podfile\\'" . ruby-mode))
-(eval-after-load 'ruby-mode
-  '(progn
-     (require 'rvm)
-     (require 'rinari)
-     (require 'robe)
-     (require 'ruby-block)
-     (require 'ruby-electric)
-     (rvm-use-default)
-     (setq ruby-deep-indent-paren nil)
-     (ruby-block-mode t)
-     (setq ruby-block-highlight-toggle t)
-     (custom-set-variables '(ruby-electric-expand-delimiters-list '(?\|)))
-     )
-  )
-
 ;; html, xml etc
-
 
 (eval-after-load "sgml-mode"
   '(progn
@@ -491,16 +413,6 @@
 (add-to-list 'auto-mode-alist '("\\.text\\'" . gfm-mode))
 (add-to-list 'auto-mode-alist '("\\.txt\\'" . gfm-mode))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; auctex customization ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;
-(eval-after-load "tex"
-  '(setcdr (assoc "LaTeX" TeX-command-list)
-          '("%`%l%(mode) -shell-escape%' %t"
-          TeX-run-TeX nil (latex-mode doctex-mode) :help "Run LaTeX")
-    )
-  )
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Scala IDE configuration ;;
@@ -519,277 +431,11 @@
      )
   )
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Haskell IDE configuration ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; dash integration
-(add-to-list 'dash-at-point-mode-alist '(haskell-mode . "hs"))
-;; (push "*Warnings*" popwin:special-display-config)
 
-;; keybindings etc
-(eval-after-load "haskell-mode"
-  '(progn
-     (require 'haskell-process)
-     (require 'ac-ghc-mod)
-     (require 'shm-case-split)
-     (require 'mmm-vars)
-     (require 'mmm-auto)
-
-     ;; hamlet inline syntax highlighting
-     (setq mmm-global-mode 'maybe)
-     (mmm-add-classes
-      '((hamlet-quasiquote
-         :submode hamlet-mode
-         :delimiter-mode nil
-         :front "\\[x?hamlet|"
-         :back "|\\]")))
-     (mmm-add-mode-ext-class 'haskell-mode nil 'hamlet-quasiquote)
-
-     (push "*GHC Info*" popwin:special-display-config)
-     (setq haskell-stylish-on-save t)
-     (define-key haskell-mode-map (kbd "M-s") 'haskell-mode-save-buffer)
-     (define-key haskell-mode-map (kbd "M-t") 'fiplr-find-file)
-     (define-key haskell-mode-map (kbd "C-x C-d") nil)
-     (define-key haskell-mode-map (kbd "C-c C-z") 'haskell-interactive-switch)
-     (define-key haskell-mode-map (kbd "C-c C-l") 'haskell-process-load-file)
-     (define-key haskell-mode-map (kbd "C-c C-b") 'haskell-interactive-switch)
-     (define-key haskell-mode-map (kbd "C-c C-t") 'haskell-process-do-type)
-     (define-key haskell-mode-map (kbd "C-c C-i") 'haskell-process-do-info)
-     (define-key haskell-mode-map (kbd "C-c M-.") nil)
-     (define-key shm-map (kbd "C-n") 'shm/newline-indent)
-     (define-key shm-map (kbd "C-c C-n") 'shm/swing-down)
-     (define-key shm-map (kbd "C-c C-i") 'shm/swing-up)
-     (define-key haskell-mode-map (kbd "C-c C-d") nil)
-     (evil-define-key 'normal haskell-mode-map ")" (lambda ()
-                                                     (interactive)
-                                                     (progn (shm/reparse)
-                                                            (shm/goto-parent-end))))
-     (define-key haskell-mode-map (kbd "C-,") " <- ")
-     (define-key flyspell-mode-map (kbd "C-,") nil)
-     ;; evil haskell keybindings
-     (evil-leader/set-key-for-mode 'haskell-mode
-       ;; "hat" (lambda ()
-       ;;         (interactive)
-       ;;         (let* ((haskell-type (haskell-get-type-string))
-       ;;                (sym (word-at-point)))
-       ;;           (save-excursion
-       ;;             (beginning-of-line)
-       ;;             (open-line 1)
-       ;;             (insert (format "%s :: %s" sym haskell-type))
-       ;;             (when newline-and-indent
-       ;;               (indent-according-to-mode)))))
-       "hat" (lambda ()
-               (interactive)
-               (haskell-process-insert-type))
-       "ht" 'ghc-show-type
-       "hl" 'haskell-process-load-file
-       "hi" 'haskell-get-type
-       "hc" 'shm/case-split
-       )
-     ))
-
-;; other haskell keybindings
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Javascript IDE configuration ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(add-to-list 'auto-mode-alist (cons (rx ".js" eos) 'js2-mode))
-
-(eval-after-load 'js2-mode
-  '(progn
-     (require 'js2-refactor)
-     (require 'tern)
-     (require 'ac-js2)
-     (setq ac-js2-evaluate-calls t)
-     (setq httpd-port 9090)
-     (setq js2-mirror-mode nil)
-     (tern-mode 1)
-     (flycheck-mode 1)
-     (setq-default js2-global-externs
-                   '("module" "require" "buster" "sinon" "assert" "refute"
-                     "setTimeout" "clearTimeout" "setInterval" "clearInterval"
-                     "location" "__dirname" "console" "JSON", "confirm"))
-
-     (setq-default js2-auto-indent-p t)
-
-     (setq-default js2-show-parse-errors nil)
-     (setq-default js2-strict-missing-semi-warning nil)
-     (setq-default js2-strict-trailing-comma-warning t) ;; jshint does not warn about this now for some reason
-
-     ;; JS refactoring
-     (js2r-add-keybindings-with-prefix "C-c C-m")
-     (font-lock-add-keywords
-      'js2-mode `(("\\(function\\) *("
-                   (0 (progn (compose-region (match-beginning 1)
-                                             (match-end 1) "\u0192")
-                             nil)))))
-     (font-lock-add-keywords
-      'js2-mode `(("function *([^)]*) *{ *\\(return\\) "
-                   (0 (progn (compose-region (match-beginning 1)
-                                             (match-end 1) "\u2190")
-                             nil)))))
-     )
-  )
-
-(eval-after-load 'tern
-  '(progn
-     (require 'tern-auto-complete)
-     (tern-ac-setup)))
-
-
-(defun javascript-unicode ()
-  (interactive)
-  (substitute-patterns-with-unicode
-   (list (cons "\\(function\\) *(" 'function)
-         (cons "function *([^)]*) *{ *\\(return\\) " 'left-arrow)
-         (cons "\\(<-\\)" 'left-arrow)
-         (cons "\\(->\\)" 'right-arrow)
-         (cons "\\(Math.sqrt\\)" 'square-root))))
-
-
-;;;;;;;;;;;;;;;;;;;;
-;; LATEX / AUCTEX ;;
-;;;;;;;;;;;;;;;;;;;;
-(setq TeX-auto-save t)
-(setq TeX-parse-self t)
-(setq-default TeX-master nil)
-
-(add-hook 'LaTeX-mode-hook 'visual-line-mode)
-(add-hook 'LaTeX-mode-hook 'flyspell-mode)
-(add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
-
-(add-hook 'LaTeX-mode-hook 'turn-on-reftex)
-(setq reftex-plug-into-AUCTeX t)
-
-;; compile to pdf
-(setq TeX-PDF-mode t)
-
-
-(setq TeX-view-program-selection '((output-pdf "PDF Viewer")))
-(setq TeX-view-program-lisT
-      '(("PDF Viewer" "/Applications/Skim.app/Contents/SharedSupport/displayline -b -g %n %o %b")))
-;; (setq TeX-view-program-list
-;;       '(("PDF Viewer" "open %o")))
-
-
-;; make auto-complete aware of `latex-mode`
-(add-to-list 'ac-modes 'latex-mode)
-
-;; add ac-sources to default ac-sources
-(defun ac-latex-mode-setup ()
-  (setq ac-sources
-        (append '(ac-source-math-unicode
-                  ac-source-math-latex
-                  c-source-latex-commands)
-                ac-sources)))
-
-(font-lock-add-keywords
- 'latex-mode
- `((,(concat "^\\s-*\\\\\\("
-             "\\(documentclass\\|\\(sub\\)?section[*]?\\)"
-             "\\(\\[[^]% \t\n]*\\]\\)?{[-[:alnum:]_ ]+"
-             "\\|"
-             "\\(begin\\|end\\){document"
-             "\\)}.*\n?")
-    (0 'your-face append))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; File to language mappings ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(setq auto-mode-alist  (cons '("Gemfile$" . ruby-mode) auto-mode-alist))
-(setq auto-mode-alist  (cons '("Gemfile.lock$" . ruby-mode) auto-mode-alist))
-(setq auto-mode-alist  (cons '("Rakefile$" . ruby-mode) auto-mode-alist))
-(add-to-list 'auto-mode-alist '("\\.hamlet$" . hamlet-mode))
-(add-to-list 'auto-mode-alist '("\\.lucius$" . css-mode))
-(add-to-list 'auto-mode-alist '("\\.julius$" . js2-mode))
-(add-to-list 'auto-mode-alist '("\\.rake$" . ruby-mode))
-
-;; org mode
-(add-to-list 'auto-mode-alist '("\\. org \\'" . org-mode))
-(eval-after-load 'ox
-  '(progn
-     (require 'evil-org)
-     (require 'ox-latex)
-     (require 'ox-koma-letter)
-     ;; (require 'ox-latex)
-     (setq org-export-in-background t)
-     (setq org-export-latex-listings t)
-     (add-to-list 'org-latex-classes
-                  '("koma-article"
-                    "\\documentclass{scrartcl}
-\\usepackage[T1]{fontenc}
-\\usepackage{libertine}
-\\renewcommand*\\oldstylenums[1]{{\\fontfamily{fxlj}\\selectfont #1}}
-\\usepackage{lmodern}
-\\usepackage{xunicode}
-\\usepackage{xltxtra}
-\\usepackage{minted}
-\\usepackage[xetex]{hyperref}
-\\usepackage{geometry}
-\\geometry{a4paper, textwidth=6.5in, textheight=10in, marginparsep=7pt, marginparwidth=.6in}
- [NO-DEFAULT-PACKAGES]
- [NO-PACKAGES]"
-
-                    ("\\section{%s}" . "\\section*{%s}")
-                    ("\\subsection{%s}" . "\\subsection*{%s}")
-                    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-                    ("\\paragraph{%s}" . "\\paragraph*{%s}")
-                    ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-
-     ;; Tell org mode about xelatex
-     ;; XeLaTeX customisations
-     ;; remove "inputenc" from default packages as it clashes with xelatex
-     (setf org-latex-default-packages-alist
-           (remove '("AUTO" "inputenc" t) org-latex-default-packages-alist))
-
-     (add-to-list 'org-latex-packages-alist '("" "xltxtra" t))
-     ;; Add minted to the defaults packages to include when exporting.
-     (add-to-list 'org-latex-packages-alist '("" "minted"))
-     ;; Tell the latex export to use the minted package for source
-     ;; code coloration.
-     (setq org-latex-listings 'minted)
-
-     ;; org to latex customisations, -shell-escape needed for minted
-     (setq org-latex-to-pdf-process          ; for regular export
-           '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-             "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-             "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f")
-           org-export-dispatch-use-expert-ui t ; non-intrusive export dispatch
-           org-latex-pdf-process           ; for experimental org-export
-           '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-             "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-             "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
-     )
-  )
-
-
-;; KOMA Script
-
-;; Restore window on quit agenda
-(setq org-agenda-restore-windows-after-quit t)
-
-;; add the org file link format to the iimage mode regex
-;; (add-to-list 'iimage-mode-image-regex-alist
-;;             (cons (concat "\\[\\[file:\\(~?" iimage-mode-image-filename-regex "\\)\\]") 1))
-
-;; function to setup images for display on load
-(defun org-turn-on-iimage-in-org ()
-  "Display images in your org file."
-  (interactive)
-  (clear-image-cache nil)
-  (iimage-mode)
-  (set-face-underline 'org-link nil))
-
-;; function to toggle images in a org bugger
-(defun org-toggle-iimage-in-org ()
-  "Display images in your org file."
-  (interactive)
-  (if (face-underline-p 'org-link)
-      (set-face-underline 'org-link nil)
-    (set-face-underline 'org-link t))
-  (call-interactively 'iimage-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Backups and auto save ;;
@@ -819,9 +465,6 @@
 ;; return to normal mode after save
 (add-hook 'after-save-hook 'evil-normal-state)
 
-;; fontlocking
-(add-hook 'js2-mode-hook 'javascript-unicode)
-
 ;; multiple cursors
 (add-hook 'multiple-cursors-mode-enabled-hook
           'my-mc-evil-switch-to-insert-state)
@@ -831,38 +474,9 @@
 
 (add-hook 'rectangular-region-mode-hook 'my-rrm-evil-switch-state)
 
-;; haskell
-;; (eval-after-load 'flycheck
-;;   '(add-hook 'flycheck-mode-hook #'flycheck-haskell-setup))
-(eval-after-load 'flycheck
- '(require 'flycheck-hdevtools))
-;; (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
-;; (add-hook 'haskell-mode-hook 'haskell-indentation-mode)
-;; (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
-;; (add-hook 'haskell-mode-hook 'turn-on-haskell-decl-scan)
-;; (add-hook 'haskell-mode-hook 'hi2-mode)
-(add-hook 'haskell-mode-hook (lambda ()
-                               (setq ghc-insert-key      "\e]")
-                               (ghc-init)
-                               (setq ghc-debug t)
-                               (turn-on-haskell-font-lock)
-                               (define-key haskell-mode-map (kbd "M-t") 'fiplr-find-file)
-                               (flycheck-mode 1)
-                               (structured-haskell-mode 1)
-                               (haskell-indentation-mode -1)
-                               (setq tab-width 4)
-                               (haskell-auto-insert-module-template)
-                               (setq ac-sources
-                                     (append '(ac-source-ghc-module
-                                               ac-source-ghc-symbol
-                                               ac-source-ghc-pragmas
-                                               ac-source-ghc-langexts)
-                                             ac-sources))))
-
 ;; Show indentation guides in languages with semantic indentation
 (add-hook 'slim-mode-hook 'highlight-indentation-current-column-mode)
 (add-hook 'yaml-mode-hook 'highlight-indentation-current-column-mode)
-;; (add-hook 'haskell-mode-hook 'highlight-indentation-current-column-mode)
 (add-hook 'coffee-mode-hook 'highlight-indentation-current-column-mode)
 (add-hook 'python-mode-hoocoffee-mode-hook 'highlight-indentation-current-column-mode)
 
@@ -871,17 +485,6 @@
                                                 (smartparens-mode -1)))
 (add-hook 'multiple-cursors-mode-disabled-hook (lambda ()
                                                 (smartparens-mode t)))
-
-;; ruby
-;; (add-hook 'ruby-mode-hook #'(lambda () (smartparens-mode -1)))
-;; (add-hook 'ruby-mode-hook (lambda () (ruby-electric-mode nil)))
-
-;; activate robe
-(add-hook 'ruby-mode-hook 'robe-mode)
-(add-hook 'robe-mode-hook
-          (lambda ()
-            (add-to-list 'ac-sources 'ac-source-robe)
-            (setq completion-at-point-functions '(auto-complete))))
 
 ;; activate ensime in scala files
 (add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
@@ -907,17 +510,6 @@
 ;; laod tagedit in html modes
 (add-hook 'html-mode-hook (lambda () (tagedit-mode 1)))
 
-;; Fix auto-complete when flyspell is active
-(add-hook 'flyspell-mode-hook
-          (lambda ()
-            (ac-flyspell-workaround)))
-
-;; use latex ac sources
-(add-hook 'latex-mode-hook 'ac-latex-mode-setup)
-(add-hook 'latex-mode-hook 'outline-minor-mode)
-
-;; forward and backwards search
-(add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode)
 
 ;; outline mode
 (add-hook 'outline-minor-mode-hook
@@ -1061,7 +653,8 @@
   "cr:" 'colonize-word-at-point)
 
 (global-set-key (kbd "C-c f") 'simp-project-find-file)
-(global-set-key (kbd "M-t") 'fiplr-find-file)
+(global-set-key (kbd "M-t") 'projectile-find-file)
+(global-set-key (kbd "M-T") 'projectile-invalidate-cache)
 
 
 (evil-leader/set-key
@@ -1079,13 +672,6 @@
 (global-set-key (kbd "M-w") 'quit-window)
 
 (global-set-key (kbd "M-RET") 'toggle-fullscreen)
-
-;; Auto-Complete
-(define-key ac-completing-map (kbd "C-j") 'ac-next)
-(define-key ac-completing-map (kbd "C-p") 'ac-previous)
-(define-key ac-completing-map (kbd "C-g") 'evil-normal-state)
-(define-key ac-completing-map (kbd "ESC") 'evil-normal-state)
-(evil-make-intercept-map ac-completing-map)
 
 ;; window management
 (evil-leader/set-key

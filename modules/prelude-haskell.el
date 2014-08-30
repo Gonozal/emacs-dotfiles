@@ -38,9 +38,10 @@
 (eval-after-load 'haskell-mode
   '(progn
      (defun prelude-haskell-mode-defaults ()
-       (subword-mode +1)
        (turn-on-haskell-doc-mode)
-       (turn-on-haskell-indentation))
+       (turn-on-haskell-indentation)
+       (subword-mode +1)
+       (interactive-haskell-mode +1))
 
      (setq prelude-haskell-mode-hook 'prelude-haskell-mode-defaults)
 

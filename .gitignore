@@ -26,3 +26,6 @@ ac-comphist.dat
 /elpa-bak/
 /auto-save-list
 personal-packages
+tramp
+/var/pcache
+tramp
