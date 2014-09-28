@@ -93,7 +93,7 @@
        )
      ))
 
-(setq haskell-font-lock-symbols t)
+;; (setq haskell-font-lock-symbols t)
 
 ;; haskell
 ;; (eval-after-load 'flycheck

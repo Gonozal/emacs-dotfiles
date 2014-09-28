@@ -55,7 +55,7 @@
 (require 'evil-visualstar)
 (require 'evil-leader)
 (require 'evil-matchit)
-(require 'evil-mode-line-color-dark)
+(require 'evil-mode-line-color)
 (require 'powerline)
 (require 'popup)
 (require 'fuzzy)
@@ -78,7 +78,6 @@
 (require 'smartparens-config)
 (require 'rainbow-delimiters)
 (require 'flycheck)
-(require 'saveplace)
 (require 'midnight)
 (require 'snort-mode)
 
@@ -94,6 +93,11 @@
 (require 'custom-javascript)
 (require 'custom-latex)
 
+;; save buffer positions
+(setq save-place-file "~/.emacs.d/saveplace")
+(setq-default save-place t)
+(require 'saveplace)
+
 ;; GC tuninG
 (setq gc-cons-threshold 50000000)
 
@@ -103,12 +107,16 @@
 
 ;; Set Font Face
 (set-face-attribute 'mode-line nil :box nil
-                    :family "Hasklig"
-                    :height 100 :weight 'normal)
+                    :family "Source Code Pro for Powerline"
+                    :height 100
+                    ;; :weight 'normal
+                    )
 (set-face-attribute 'mode-line-inactive nil :box nil)
 (set-face-attribute 'default nil
-                    :family "Hasklig"
-                    :height 100 :weight 'normal)
+                    :family "Source Code Pro for Powerline"
+                    :height 100
+                    ;; :weight 'normal
+                    )
 (setq haskell-font-lock-symbols t)
 
 (disable-theme 'molokai)
@@ -116,8 +124,8 @@
 ;; powerline solarized customization
 (powerline-default-theme)        ; load powerline
 ;; (setq solarized-distinct-fringe-background t)
-(setq solarized-use-less-bold t)
-(load-theme 'solarized-dark t)  ; Load the best theme ever
+;; (setq solarized-use-less-bold t)
+(load-theme 'solarized-light t)  ; Load the best theme ever
 (setq scroll-margin 4)          ; Sane cursor and window movements
 (scroll-bar-mode -1)            ; No scrollbars, thank you
 (global-diff-hl-mode)           ; show visual VCS diffs
@@ -128,6 +136,9 @@
 (global-linum-mode)                    ; line numbering everywhere
 (yas-global-mode 1)                    ; use snippets everywhere
 (popwin-mode 1)                        ; use popup windows instead of idle windows
+
+;; save buffer configurations
+;; (desktop-save-mode 1)
 
 ;; silence emacs, damnit
 (setq ring-bell-function 'ignore)
@@ -293,6 +304,38 @@
 (diminish 'flycheck-mode " ✓ ")
 ;; (diminish 'guru-mode "")
 (diminish 'company-mode " ⋯ ")
+
+;;;;;;;;;;;;;;;;
+;; Helm setup ;;
+;;;;;;;;;;;;;;;;
+;; (require 'helm-config)
+;; (require 'helm-eshell)
+;; (require 'helm-files)
+;; (require 'helm-grep)
+
+;; (setq
+;;  helm-google-suggest-use-curl-p t
+;;  helm-scroll-amount 4                  ; scroll 4 lines other window using M-<next>/M-<prior>
+;;  helm-quick-update t                   ; do not display invisible candidates
+;;  helm-idle-delay 0.01                  ; be idle for this many seconds, before updating in delayed sources.
+;;  helm-input-idle-delay 0.01            ; be idle for this many seconds, before updating candidate buffer
+;;  helm-ff-search-library-in-sexp t      ; search for library in `require' and `declare-function' sexp.
+
+;;  helm-split-window-default-side 'other ;; open helm buffer in another window
+;;  helm-split-window-in-side-p t         ;; open helm buffer inside current window, not occupy whole other window
+;;  helm-buffers-favorite-modes (append helm-buffers-favorite-modes
+;;                                      '(picture-mode artist-mode))
+;;  helm-candidate-number-limit 200       ; limit the number of displayed canidates
+;;  helm-M-x-requires-pattern 0           ; show all candidates when set to 0
+;;  helm-ff-file-name-history-use-recentf t
+;;  helm-move-to-line-cycle-in-source t   ; move to end or beginning of source
+;;                                        ; when reaching top or bottom of source.
+;;  ido-use-virtual-buffers t             ; Needed in helm-buffers-list
+;;  helm-buffers-fuzzy-matching t         ; fuzzy matching buffer names when non--nil
+;;                                        ; useful in helm-mini that lists buffers
+;;  )
+
+;; (helm-mode 1)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; auto-complete setup ;;

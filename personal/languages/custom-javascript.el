@@ -21,20 +21,18 @@
      (require 'tern)
      (require 'company-tern)
      (require 'ac-js2)
-     (setq js-indent-level 2)
      (add-to-list 'company-backends 'company-tern)
      (add-to-list 'company-backends 'ac-js2-company)
-     (setq-default js2-basic-offset 2)
-     (setq js2-basic-offset 2)
-     (define-key js2-mode-map (kbd "RET") 'js2-electric-return)
+     (setq js-indent-level 4)
+     (setq-default js2-basic-offset 4)
+     (setq js2-basic-offset 4)
+     ;; (define-key js2-mode-map (kbd "RET") 'js2-electric-return)
      (custom-set-variables
-      '(js2-basic-offset 2)
       '(js2-bounce-indent-p t)
       '(js2-pretty-multiline-declarations 'all)
       )
      (setq ac-js2-evaluate-calls t)
      (setq httpd-port 9090)
-     (setq js2-mirror-mode nil)
      (tern-mode 1)
      (flycheck-mode 1)
      (setq-default js2-global-externs
@@ -44,8 +42,8 @@
 
      (setq-default js2-auto-indent-p t)
 
-     (setq-default js2-show-parse-errors nil)
-     (setq-default js2-strict-missing-semi-warning nil)
+     ;; (setq-default js2-show-parse-errors nil)
+     ;; (setq-default js2-strict-missing-semi-warning nil)
      (setq-default js2-strict-trailing-comma-warning t) ;; jshint does not warn about this now for some reason
 
      ;; JS refactoring

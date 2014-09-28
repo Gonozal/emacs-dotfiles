@@ -37,59 +37,59 @@
   (indent-according-to-mode))
 
 ;; js2 and general line break / indentation for curly braces and return
-(defun return-gen-embrace()
-  "Match an open brace at the end of a line
-with a closing brace (if required), put point on a
-empty line between the braces, and indent the new lines.
+;; (defun return-gen-embrace()
+;;   "Match an open brace at the end of a line
+;; with a closing brace (if required), put point on a
+;; empty line between the braces, and indent the new lines.
 
-So if before
-you had:
+;; So if before
+;; you had:
 
-   pubic void function () {
-			   ^
-You now have:
+;;    pubic void function () {
+;; 			   ^
+;; You now have:
 
-   pubic void function () {
+;;    pubic void function () {
 
-   } ^
+;;    } ^
 
-Point must be at the end of the line, or at a } character
-followed by the end of the line.
+;; Point must be at the end of the line, or at a } character
+;; followed by the end of the line.
 
-If it thinks a matching close brace already exists a new one is not inserted.
-Before:
-   pubic void function () {
-   }                       ^
-After:
-   pubic void function () {
+;; If it thinks a matching close brace already exists a new one is not inserted.
+;; Before:
+;;    pubic void function () {
+;;    }                       ^
+;; After:
+;;    pubic void function () {
 
-   } ^"
-  (interactive)
-  (if (or (eq (point) (point-min))
-	  (save-excursion
-	    (backward-char)
-	    (not (looking-at "{},?$"))))
-      (newline-and-indent)
-    ;; else
-    (progn
-      (newline-and-indent)
-      (newline-and-indent)
-      (when (not (looking-at "}"))
-	(insert "}")
-	(c-indent-command))
-      (forward-line -1)
-      (c-indent-command))))
+;;    } ^"
+;;   (interactive)
+;;   (if (or (eq (point) (point-min))
+;;           (save-excursion
+;;             (backward-char)
+;;             (not (looking-at "{},?$"))))
+;;       (newline-and-indent)
+;;     ;; else
+;;     (progn
+;;       (newline-and-indent)
+;;       (newline-and-indent)
+;;       (js2-indent-bounce-backwards)
+;;       (when (not (looking-at "}"))
+;;         (insert "}"))
+;;       (forward-line -1)
+;;       (c-indent-command))))
 
-(defun js2-electric-return ()
-"Invokes `jde-gen-embrace' to close an open brace at the end of a line."
-  (interactive)
-  (if  ;; the current line ends at an open brace.
-       (and
-	(save-excursion
-	  (re-search-backward "{\\s-*" (line-beginning-position) t))
-	(looking-at "},?\\s-*$"))
-      (return-gen-embrace)
-    (call-interactively 'js2-line-break)))
+;; (defun js2-electric-return ()
+;;   "Invokes `jde-gen-embrace' to close an open brace at the end of a line."
+;;   (interactive)
+;;   (if  ;; the current line ends at an open brace.
+;;       (and
+;;        (save-excursion
+;;          (re-search-backward "{\\s-*" (line-beginning-position) t))
+;;        (looking-at "},?\\s-*$"))
+;;       (return-gen-embrace)
+;;     (call-interactively 'js2-line-break)))
 
 ;; In a region, increment the first numbers in each row
 ;; to be ascending from top to bottom
