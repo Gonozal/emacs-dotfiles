@@ -22,8 +22,8 @@
 (eval-after-load 'js2-mode
   '(progn
      (defun prelude-js-mode-defaults ()
-       ;; electric-layout-mode doesn't play nice with js-mode
-       (electric-layout-mode -1))
+       ;; electric-layout-mode doesn't play nice with smartparens
+       (setq-local electric-layout-rules '((?\; . after))))
 
      (setq prelude-js-mode-hook 'prelude-js-mode-defaults)
 
