@@ -13,10 +13,18 @@
 ;; LATEX / AUCTEX ;;
 ;;;;;;;;;;;;;;;;;;;;
 (require 'company-auctex)
+(require 'reftex)
 (company-auctex-init)
 
-(setq TeX-auto-save t)
-(setq TeX-parse-self t)
+(setq
+ TeX-auto-save t
+ TeX-parse-self t
+ reftex-toc-split-windows-horizontally t
+ reftex-toc-split-windows-fraction 0.4
+ font-latex-fontify-script nil
+ font-latex-fontify-sectioning 'color
+ )
+
 (setq-default TeX-master nil)
 
 (add-hook 'LaTeX-mode-hook 'visual-line-mode)
@@ -27,11 +35,11 @@
 (setq reftex-plug-into-AUCTeX t)
 
 ;; compile to pdf
-(setq TeX-PDF-mode t)
+(setq-default TeX-PDF-mode t)
 
 
 (setq TeX-view-program-selection '((output-pdf "PDF Viewer")))
-(setq TeX-view-program-lisT
+(setq TeX-view-program-list
       '(("PDF Viewer" "/Applications/Skim.app/Contents/SharedSupport/displayline -b -g %n %o %b")))
 ;; (setq TeX-view-program-list
 ;;       '(("PDF Viewer" "open %o")))
@@ -58,6 +66,26 @@
              "\\)}.*\n?")
     (0 'your-face append))))
 
+;; start in evil normal state
+
+(evil-set-initial-state 'reftex-toc-mode 'normal)
+(add-hook 'reftex-toc-mode-hook
+          (lambda ()
+            (rainbow-delimiters-mode -1)
+            (evil-leader-mode -1)
+            (smartparens-mode -1)
+            )
+          )
+
+;; add keyboard shortcuts for toc mode in evil normal state
+(evil-define-key 'normal reftex-toc-mode-map (kbd "RET") 'reftex-toc-goto-line-and-hide)
+(evil-define-key 'normal reftex-toc-mode-map (kbd "TAB") 'reftex-toc-goto-line)
+(evil-define-key 'normal reftex-toc-mode-map (kbd "SPC") 'reftex-toc-view-line)
+(evil-define-key 'normal reftex-toc-mode-map (kbd "<") 'reftex-toc-demote)
+(evil-define-key 'normal reftex-toc-mode-map (kbd ">") 'reftex-toc-promote)
+(evil-define-key 'normal reftex-toc-mode-map (kbd "q") 'reftex-toc-quit-and-kill)
+(evil-define-key 'normal reftex-toc-mode-map (kbd "t") 'reftex-toc-max-level)
+(evil-define-key 'normal reftex-toc-mode-map (kbd "z") 'reftex-toc-jump)
 
 ;; use latex ac sources
 (add-hook 'latex-mode-hook 'ac-latex-mode-setup)

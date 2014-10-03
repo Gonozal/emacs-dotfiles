@@ -28,8 +28,8 @@
      (setq js2-basic-offset 4)
      ;; (define-key js2-mode-map (kbd "RET") 'js2-electric-return)
      (custom-set-variables
-      '(js2-bounce-indent-p t)
-      '(js2-pretty-multiline-declarations 'all)
+      '(js2-bounce-indent-p nil)
+      '(js2-pretty-multiline-declarations 't)
       )
      (setq ac-js2-evaluate-calls t)
      (setq httpd-port 9090)
@@ -40,7 +40,7 @@
                      "setTimeout" "clearTimeout" "setInterval" "clearInterval"
                      "location" "__dirname" "console" "JSON", "confirm"))
 
-     (setq-default js2-auto-indent-p t)
+     ;; (setq-default js2-auto-indent-p t)
 
      ;; (setq-default js2-show-parse-errors nil)
      ;; (setq-default js2-strict-missing-semi-warning nil)

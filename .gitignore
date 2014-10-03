@@ -30,3 +30,4 @@ tramp
 /var/pcache
 tramp
 .emacs.desktop
+.emacs.desktop.lock

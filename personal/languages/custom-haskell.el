@@ -25,6 +25,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Haskell IDE configuration ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(setq haskell-font-lock-symbols t)
+
+
 ;; dash integration
 (add-to-list 'dash-at-point-mode-alist '(haskell-mode . "hs"))
 
@@ -107,10 +110,10 @@
 ;; (add-hook 'haskell-mode-hook 'hi2-mode)
 (add-hook 'haskell-mode-hook (lambda ()
                                (ghc-init)
-                               (turn-on-haskell-font-lock)
+                               ;; (turn-on-haskell-font-lock)
                                ;; (setq ghc-insert-key      "\e]")
                                ;; (setq ghc-debug t)
-                               (define-key haskell-mode-map (kbd "M-t") 'fiplr-find-file)
+                               (define-key haskell-mode-map (kbd "M-t") 'projectile-find-file)
                                (flycheck-mode +1)
                                (structured-haskell-mode +1)
                                (haskell-indentation-mode -1)
@@ -118,12 +121,7 @@
                                (interactive-haskell-mode +1)
                                (setq tab-width 4)
                                (haskell-auto-insert-module-template)
-                               (setq ac-sources
-                                     (append '(ac-source-ghc-module
-                                               ac-source-ghc-symbol
-                                               ac-source-ghc-pragmas
-                                               ac-source-ghc-langexts)
-                                             ac-sources))))
+                               ))
 
 
 (provide 'custom-haskell)

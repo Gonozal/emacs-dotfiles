@@ -5,7 +5,6 @@
 ;;; Code:
 (server-start)
 
-(add-to-list 'load-path "~/.emacs.d/personal-packages/fiplr/")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/powerline/")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/flycheck-hdevtools/")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/fuzzy-el/")
@@ -72,7 +71,6 @@
 (require 'popwin)
 
 (require 'diff-hl)
-(require 'fiplr)
 (require 'linum-relative)
 (require 'smartparens)
 (require 'smartparens-config)
@@ -117,7 +115,6 @@
                     :height 100
                     ;; :weight 'normal
                     )
-(setq haskell-font-lock-symbols t)
 
 (disable-theme 'molokai)
 (disable-theme 'zenburn)
@@ -130,7 +127,7 @@
 (scroll-bar-mode -1)            ; No scrollbars, thank you
 (global-diff-hl-mode)           ; show visual VCS diffs
 (global-hl-line-mode -1)               ; do not highlight current line
-(global-rainbow-delimiters-mode)
+;; (global-rainbow-delimiters-mode)
 
 (browse-kill-ring-default-keybindings) ; load defult keybindings for killring browser
 (global-linum-mode)                    ; line numbering everywhere
@@ -138,7 +135,8 @@
 (popwin-mode 1)                        ; use popup windows instead of idle windows
 
 ;; save buffer configurations
-;; (desktop-save-mode 1)
+(desktop-save-mode 1)
+
 
 ;; silence emacs, damnit
 (setq ring-bell-function 'ignore)
@@ -155,6 +153,8 @@
 
 ;; map function key to hyper
 (setq ns-function-modifier 'hyper)
+
+(setq ns-use-native-fullscreen nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Whitespace and tab behavior ;;
@@ -214,9 +214,6 @@
 ;; projectile
 (projectile-global-mode)
 
-;; Fiplr
-(setq fiplr-root-markers '(".git" ".project"))
-
 ;; Dash at point
 (evil-leader/set-key
   "d" 'dash-at-point
@@ -230,6 +227,7 @@
 (key-chord-mode 0)
 
 ;; General setup
+(setq evil-default-state 'normal)
 (evil-mode nil)
 (global-evil-leader-mode 1)
 (global-evil-matchit-mode)
@@ -291,7 +289,6 @@
         ;; (magit-commit-mode . normal)
         )
       do (evil-set-initial-state mode state))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Diminish modeline names ;;
@@ -476,9 +473,10 @@
 
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; File to language mappings ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; General editing options ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(electric-indent-mode -1)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Backups and auto save ;;
@@ -507,6 +505,8 @@
 
 ;; return to normal mode after save
 (add-hook 'after-save-hook 'evil-normal-state)
+
+(add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
 
 ;; multiple cursors
 (add-hook 'multiple-cursors-mode-enabled-hook
@@ -732,7 +732,7 @@
   "u"  'undo-tree-visualize)
 
 ;; Autoindent on newline
-(global-set-key (kbd "RET") 'newline-and-indent)
+(global-set-key (kbd "RET") 'newline)
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Evil ex-commands ;;
