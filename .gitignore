@@ -31,3 +31,4 @@ tramp
 tramp
 .emacs.desktop
 .emacs.desktop.lock
+.frame-parameters
