@@ -751,7 +751,7 @@
 ;;;;;;;;;;;;;;;;;;
 ;; Evil keymaps ;;
 ;;;;;;;;;;;;;;;;;;
-(require 'evil-custom-maps)
+;; (require 'evil-custom-maps)
 
 
 ;;;;;;;;;;;;;;;;;;
