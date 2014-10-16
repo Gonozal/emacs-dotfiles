@@ -20,12 +20,16 @@
 
 (add-to-list 'exec-path "~/.cabal/bin")
 
+(require 'package)
+(add-to-list 'package-archives
+  '("melpa" . "http://melpa.milkbox.net/packages/") t)
+
 ;; (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
 
 (prelude-require-packages
  '(
    ;; evil and plugins
-   evil surround evil-numbers evil-nerd-commenter evil-leader evil-paredit
+   evil evil-surround evil-numbers evil-nerd-commenter evil-leader evil-paredit
    evil-exchange
    ;; grep etc
    ag wgrep wgrep-ag
@@ -38,6 +42,7 @@
    ;; qt quick qml
    qml-mode
    ;; html
+   multiple-cursors thingatpt+ async
    evil-matchit evil-visualstar
    ;; editing
    move-text tagedit yasnippet smartparens company
@@ -83,15 +88,15 @@
 
 (require 'company)
 
-;; Require custom defuns
-(require 'setup-defuns)
-
 ;; load language customizations
 (require 'custom-ruby)
 (require 'custom-haskell)
 (require 'custom-elm)
 (require 'custom-javascript)
 (require 'custom-latex)
+
+;; Require custom defuns
+(require 'setup-defuns)
 
 ;; save buffer positions
 (setq save-place-file "~/.emacs.d/saveplace")
@@ -231,7 +236,7 @@
 ;;;;;;;;;;;;;;;;
 
 ;; were using evil, no need for keychoards!
-(key-chord-mode 0)
+; (key-chord-mode 0)
 
 ;; General setup
 (setq evil-default-state 'normal
@@ -243,8 +248,8 @@
 (evil-mode 1)
 
 ;; surround plugin
-(global-surround-mode 1)
-(surround-mode 1)
+(global-evil-surround-mode 1)
+(evil-surround-mode 1)
 
 ;; evil leader
 (evil-leader/set-leader "<SPC>")
@@ -436,10 +441,6 @@
 ;; Language customizations ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Golang
-(when (not (getenv "GOPATH"))
-  (setenv "GOPATH" "/Users/arne/go"))
-
 ;; html, xml etc
 
 (eval-after-load "sgml-mode"
@@ -456,10 +457,10 @@
 ;;;;;;;;;;;;;;;;;;;
 ;; markdown mode ;;
 ;;;;;;;;;;;;;;;;;;;
-(add-to-list 'auto-mode-alist '("\\.md\\'" . gfm-mode))
-(add-to-list 'auto-mode-alist '("\\.markdown\\'" . gfm-mode))
-(add-to-list 'auto-mode-alist '("\\.text\\'" . gfm-mode))
-(add-to-list 'auto-mode-alist '("\\.txt\\'" . gfm-mode))
+(add-to-list 'auto-mode-alist '("/.md/'" . gfm-mode))
+(add-to-list 'auto-mode-alist '("/.markdown/'" . gfm-mode))
+(add-to-list 'auto-mode-alist '("/.text/'" . gfm-mode))
+(add-to-list 'auto-mode-alist '("/.txt/'" . gfm-mode))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

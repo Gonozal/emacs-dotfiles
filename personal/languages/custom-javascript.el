@@ -12,7 +12,7 @@
 ;; always use js2-mode in js files
 (add-to-list 'auto-mode-alist (cons (rx ".js" eos) 'js2-mode))
 
-(rename-modeline "js2-mode" js2-mode "JS2")
+;; (rename-modeline "js2-mode" js2-mode "JS2")
 
 
 (eval-after-load 'js2-mode

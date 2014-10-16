@@ -6,7 +6,7 @@
 (require 'evil)
 (require 'evil-leader)
 (require 'ace-jump-mode)
-(require 'haskell-doc)
+; (require 'haskell-doc)
 (require 'ghc)
 (require 'ghc-process)
 (require 'async)
