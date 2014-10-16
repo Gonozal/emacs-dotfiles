@@ -32,3 +32,4 @@ tramp
 .emacs.desktop
 .emacs.desktop.lock
 .frame-parameters
+.mc-lists.el

@@ -77,11 +77,32 @@
 (define-key evil-normal-state-map  "O" 'evil-window-bottom)
 (define-key evil-normal-state-map  "M" 'evil-window-middle) ;; notmodified
 (define-key evil-normal-state-map  "Y" 'evil-window-top)
-(define-key evil-normal-state-map  "H" (kbd "hg_"))
 (define-key evil-normal-state-map  "gk" 'evil-insert-resume)
 (define-key evil-normal-state-map  "gJ" 'evil-join-whitespace) ;;; notmodified
 (set-in-all-evil-states-but-insert "h" 'evil-yank)
 ;; (set-in-all-evil-states-but-insert "H" 'evil-yank-line)
+
+;; custom function commands
+(defun codas-yank-to-end-of-line ()
+  "Yank to end of line."
+  (interactive)
+  (evil-yank (point) (point-at-eol)))
+(define-key evil-normal-state-map "H" 'codas-yank-to-end-of-line)
+
+(defun codas-shift-left-visual ()
+  "Shift left and restore visual selection."
+  (interactive)
+  (evil-shift-left (region-beginning) (region-end))
+  (evil-normal-state)
+  (evil-visual-restore))
+(defun codas-shift-right-visual ()
+  "Shift right and restore visual selection."
+  (interactive)
+  (evil-shift-right (region-beginning) (region-end))
+  (evil-normal-state)
+  (evil-visual-restore))
+(define-key evil-visual-state-map (kbd ">") 'codas-shift-right-visual)
+(define-key evil-visual-state-map (kbd "<") 'codas-shift-left-visual)
 
 
 ;; window commands

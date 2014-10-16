@@ -25,7 +25,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Haskell IDE configuration ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(setq haskell-font-lock-symbols t)
+;; (setq haskell-font-lock-symbols t)
 
 
 ;; dash integration
@@ -44,14 +44,14 @@
      (add-to-list 'company-backends 'company-ghc)
 
      ;; hamlet inline syntax highlighting
-     (setq mmm-global-mode 'maybe)
+     ;; (setq mmm-global-mode 'maybe)
      (mmm-add-classes
       '((hamlet-quasiquote
          :submode hamlet-mode
          :delimiter-mode nil
          :front "\\[x?hamlet|"
          :back "|\\]")))
-     (mmm-add-mode-ext-class 'haskell-mode nil 'hamlet-quasiquote)
+     ;; (mmm-add-mode-ext-class 'haskell-mode nil 'hamlet-quasiquote)
 
      (push "*GHC Info*" popwin:special-display-config)
      (setq haskell-stylish-on-save t)

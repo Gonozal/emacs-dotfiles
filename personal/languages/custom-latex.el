@@ -14,29 +14,44 @@
 ;;;;;;;;;;;;;;;;;;;;
 (require 'company-auctex)
 (require 'reftex)
+(require 'texmathp)
 (company-auctex-init)
 
 (setq
  TeX-auto-save t
  TeX-parse-self t
  reftex-toc-split-windows-horizontally t
- reftex-toc-split-windows-fraction 0.4
+ reftex-toc-split-windows-fraction 0.35
  font-latex-fontify-script nil
  font-latex-fontify-sectioning 'color
  )
 
 (setq-default TeX-master nil)
 
-(add-hook 'LaTeX-mode-hook 'visual-line-mode)
-(add-hook 'LaTeX-mode-hook 'flyspell-mode)
-(add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
+;; (add-hook 'LaTeX-mode-hook 'visual-line-mode)
+(add-hook 'LaTeX-mode-hook '(lambda ()
+                              (diff-hl-mode nil)
+                              (latex-math-mode)
+                              (turn-on-reftex)
+                              (setq TeX-command-default "latexmk")
+                              (ac-latex-mode-setup)
+                              (outline-minor-mode)
+                              (TeX-source-correlate-mode)
+                              (auto-fill-mode)
+                              ))
 
-(add-hook 'LaTeX-mode-hook 'turn-on-reftex)
 (setq reftex-plug-into-AUCTeX t)
 
 ;; compile to pdf
 (setq-default TeX-PDF-mode t)
 
+;; Use Skim as viewer, enable source <-> PDF sync
+;; make latexmk available via C-c C-c
+;; Note: SyncTeX is setup via ~/.latexmkrc (see below)
+(push
+ '("latexmk" "latexmk -pdf %s" TeX-run-TeX nil t
+   :help "Run latexmk on file")
+ TeX-command-list)
 
 (setq TeX-view-program-selection '((output-pdf "PDF Viewer")))
 (setq TeX-view-program-list
@@ -71,9 +86,12 @@
 (evil-set-initial-state 'reftex-toc-mode 'normal)
 (add-hook 'reftex-toc-mode-hook
           (lambda ()
-            (rainbow-delimiters-mode -1)
-            (evil-leader-mode -1)
-            (smartparens-mode -1)
+            (rainbow-delimiters-mode nil)
+            (evil-leader-mode nil)
+            (smartparens-mode nil)
+            (linum-mode 0)
+            (diff-hl-mode 0)
+            (pdf-tools-install)
             )
           )
 
@@ -86,12 +104,6 @@
 (evil-define-key 'normal reftex-toc-mode-map (kbd "q") 'reftex-toc-quit-and-kill)
 (evil-define-key 'normal reftex-toc-mode-map (kbd "t") 'reftex-toc-max-level)
 (evil-define-key 'normal reftex-toc-mode-map (kbd "z") 'reftex-toc-jump)
-
-;; use latex ac sources
-(add-hook 'latex-mode-hook 'ac-latex-mode-setup)
-(add-hook 'latex-mode-hook 'outline-minor-mode)
-;; forward and backwards search
-(add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode)
 
 
 (provide 'custom-latex)

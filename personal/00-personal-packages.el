@@ -16,6 +16,7 @@
 (add-to-list 'load-path "~/.emacs.d/personal/misc/")
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 (add-to-list 'load-path "~/.emacs.d/themes/")
+(add-to-list 'load-path "~/.emacs.d/personal/")
 
 (add-to-list 'exec-path "~/.cabal/bin")
 
@@ -72,6 +73,7 @@
 
 (require 'diff-hl)
 (require 'linum-relative)
+(require 'linum-off)
 (require 'smartparens)
 (require 'smartparens-config)
 (require 'rainbow-delimiters)
@@ -122,17 +124,19 @@
 (powerline-default-theme)        ; load powerline
 ;; (setq solarized-distinct-fringe-background t)
 ;; (setq solarized-use-less-bold t)
-(load-theme 'solarized-light t)  ; Load the best theme ever
-(setq scroll-margin 4)          ; Sane cursor and window movements
-(scroll-bar-mode -1)            ; No scrollbars, thank you
-(global-diff-hl-mode)           ; show visual VCS diffs
-(global-hl-line-mode -1)               ; do not highlight current line
+(load-theme 'solarized-light t)                     ;; Load the best theme ever
+(setq scroll-margin 4)                              ;; Sane cursor and window movements
+(scroll-bar-mode -1)                                ;; No scrollbars, thank you
+(setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
+(setq mouse-wheel-progressive-speed nil)            ;; don't accelerate scrolling
+(global-diff-hl-mode)                               ;; show visual VCS diffs
+(global-hl-line-mode -1)                            ;; do not highlight current line
 ;; (global-rainbow-delimiters-mode)
 
 (browse-kill-ring-default-keybindings) ; load defult keybindings for killring browser
 (global-linum-mode)                    ; line numbering everywhere
 (yas-global-mode 1)                    ; use snippets everywhere
-(popwin-mode 1)                        ; use popup windows instead of idle windows
+;; (popwin-mode 1)                        ; use popup windows instead of idle windows
 
 ;; save buffer configurations
 (desktop-save-mode 1)
@@ -152,9 +156,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; map function key to hyper
-(setq ns-function-modifier 'hyper)
-
-(setq ns-use-native-fullscreen nil)
+(setq ns-function-modifier 'hyper
+      ns-use-native-fullscreen nil
+      mac-option-key-is-meta nil
+      mac-command-key-is-meta t
+      mac-command-modifier 'meta
+      mac-option-modifier nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Whitespace and tab behavior ;;
@@ -227,12 +234,13 @@
 (key-chord-mode 0)
 
 ;; General setup
-(setq evil-default-state 'normal)
+(setq evil-default-state 'normal
+      evil-esc-delay 0
+      evil-shift-width 2)
 (evil-mode nil)
 (global-evil-leader-mode 1)
 (global-evil-matchit-mode)
 (evil-mode 1)
-(setq evil-shift-width 2)
 
 ;; surround plugin
 (global-surround-mode 1)
@@ -573,9 +581,7 @@
 ;; Typo rebindings and general shortcuts
 (evil-ex-define-cmd "W" 'evil-write)
 (evil-ex-define-cmd "b" 'switch-to-previous-buffer)
-
-;; Why the hell is Y yank whole line anyways?!
-(define-key evil-normal-state-map "H" (kbd "hg_"))
+(evil-ex-define-cmd "B" 'switch-to-previous-buffer)
 
 ;; make C-g also cancel insert state
 (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
@@ -608,9 +614,11 @@
 (define-key evil-visual-state-map "m" 'evil-narrow-indirect)
 
 ;; number incrementing and decrementing
-(define-key evil-normal-state-map (kbd "+") 'evil-numbers/inc-at-pt)
-(define-key evil-normal-state-map (kbd "-") 'evil-numbers/dec-at-pt)
-(define-key evil-visual-state-map "+" 'inc-num-region) ;; Increment rows of numbers ascendin
+(define-key evil-normal-state-map (kbd "C-A")
+  'evil-numbers/inc-at-pt)
+(define-key evil-normal-state-map (kbd "C-S-A")
+  'evil-numbers/dec-at-pt)
+(define-key evil-visual-state-map (kbd "C-A") 'inc-num-region) ;; Increment rows of numbers ascending
 
 ;; nerd commenter
 (evil-leader/set-key "c SPC" 'evilnc-comment-or-uncomment-lines )
@@ -675,9 +683,9 @@
 ;;   "h" 'magit-toggle-diff-refine-hunk)
 
 ;; Move-text keybindings (move text or region up/down)
-(define-key evil-normal-state-map (kbd "M-i") 'move-text-up)
-(define-key evil-normal-state-map (kbd "M-n") 'move-text-down)
 (define-key evil-visual-state-map (kbd "M-i") 'move-text-up)
+(define-key evil-normal-state-map (kbd "M-n") 'move-text-down)
+(define-key evil-normal-state-map (kbd "M-i") 'move-text-up)
 (define-key evil-visual-state-map (kbd "M-n") 'move-text-down)
 
 ;; jk escapes and switches to normal mode
@@ -732,7 +740,7 @@
   "u"  'undo-tree-visualize)
 
 ;; Autoindent on newline
-(global-set-key (kbd "RET") 'newline)
+(global-set-key (kbd "RET") 'newline-and-indent)
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Evil ex-commands ;;

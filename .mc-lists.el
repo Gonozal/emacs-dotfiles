@@ -3,8 +3,10 @@
 
 (setq mc/cmds-to-run-for-all
       '(
+        evil-delete
         evil-force-normal-state
         evil-forward-char
+        evil-insert
         evil-next-line
         evil-previous-line
         org-self-insert-command
@@ -24,6 +26,7 @@
         ruby-electric-space
         smex
         sp--self-insert-command
+        sp-kill-hybrid-sexp
         text-scale-decrease
         text-scale-increase
         ))
