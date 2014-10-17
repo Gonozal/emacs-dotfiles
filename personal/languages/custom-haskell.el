@@ -61,8 +61,8 @@
      (define-key haskell-mode-map (kbd "C-c C-z") 'haskell-interactive-switch)
      (define-key haskell-mode-map (kbd "C-c C-l") 'haskell-process-load-file)
      (define-key haskell-mode-map (kbd "C-c C-b") 'haskell-interactive-switch)
-     (define-key haskell-mode-map (kbd "C-c C-t") 'haskell-process-do-type)
-     (define-key haskell-mode-map (kbd "C-c C-i") 'haskell-process-do-info)
+     ;; (define-key haskell-mode-map (kbd "C-c C-t") 'haskell-process-do-type)
+     ;; (define-key haskell-mode-map (kbd "C-c C-i") 'haskell-process-do-info)
      (define-key haskell-mode-map (kbd "C-c M-.") nil)
      (define-key shm-map (kbd "C-n") 'shm/newline-indent)
      (define-key shm-map (kbd "C-c C-n") 'shm/swing-down)
@@ -89,39 +89,41 @@
        "hat" (lambda ()
                (interactive)
                (haskell-process-insert-type))
-       "ht" 'ghc-show-type
        "hl" 'haskell-process-load-file
-       "hi" 'haskell-get-type
        "hc" 'shm/case-split
+       "ht" 'ghc-insert-template-or-signature
+       "hi" 'ghc-show-type
        )
      ))
 
 ;; (setq haskell-font-lock-symbols t)
 
 ;; haskell
-;; (eval-after-load 'flycheck
-;;   '(add-hook 'flycheck-mode-hook #'flycheck-haskell-setup))
-(eval-after-load 'flycheck
- '(require 'flycheck-hdevtools))
 ;; (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
 ;; (add-hook 'haskell-mode-hook 'haskell-indentation-mode)
 ;; (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
 ;; (add-hook 'haskell-mode-hook 'turn-on-haskell-decl-scan)
 ;; (add-hook 'haskell-mode-hook 'hi2-mode)
 (add-hook 'haskell-mode-hook (lambda ()
-                               (ghc-init)
-                               ;; (turn-on-haskell-font-lock)
-                               ;; (setq ghc-insert-key      "\e]")
-                               ;; (setq ghc-debug t)
-                               (define-key haskell-mode-map (kbd "M-t") 'projectile-find-file)
-                               (flycheck-mode +1)
-                               (structured-haskell-mode +1)
-                               (haskell-indentation-mode -1)
-                               (subword-mode +1)
-                               (interactive-haskell-mode +1)
-                               (setq tab-width 4)
-                               (haskell-auto-insert-module-template)
-                               ))
+                                (ghc-init)
+                                (add-to-list 'flycheck-disabled-checkers "haskell-ghc")
+                                (eval '(defun ghc-type-obtain-tinfos ()
+                                        (let* ((ln (int-to-string (line-number-at-pos)))
+                                               (cn (int-to-string (1+ (current-column))))
+                                               (file (buffer-file-name))
+                                               (cmd (format "type %s %s %s\n" file ln cn)))
+                                          (ghc-sync-process cmd nil 'ghc-type-fix-string))))
+                                ;; (turn-on-haskell-font-lock)
+                                ;; (setq ghc-insert-key      "\e]")
+                                ;; (setq ghc-debug t)
+                                (define-key haskell-mode-map (kbd "M-t") 'projectile-find-file)
+                                (structured-haskell-mode +1)
+                                (haskell-indentation-mode -1)
+                                (subword-mode +1)
+                                (interactive-haskell-mode +1)
+                                (setq tab-width 4)
+                                (haskell-auto-insert-module-template)
+                                ))
 
 
 (provide 'custom-haskell)

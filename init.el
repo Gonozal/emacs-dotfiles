@@ -52,8 +52,8 @@
   "This directory houses all of the built-in Prelude modules.")
 (defvar prelude-personal-dir (expand-file-name "personal" prelude-dir)
   "This directory is for your personal configuration.
-
 Users of Emacs Prelude are encouraged to keep their personal configuration
+
 changes in this directory.  All Emacs Lisp files there are loaded automatically
 by Prelude.")
 (defvar prelude-personal-preload-dir (expand-file-name "preload" prelude-personal-dir)

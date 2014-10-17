@@ -6,7 +6,6 @@
 (server-start)
 
 (add-to-list 'load-path "~/.emacs.d/personal-packages/powerline/")
-(add-to-list 'load-path "~/.emacs.d/personal-packages/flycheck-hdevtools/")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/fuzzy-el/")
 (add-to-list 'load-path "~/.emacs.d/personal-packages/popup-el/")
 (add-to-list 'load-path "~/Development/Scala/ensime/dist/elisp/")
@@ -47,6 +46,8 @@
    ;; editing
    move-text tagedit yasnippet smartparens company
    emmet-mode dash-at-point
+   ;; Themes
+   warm-night-theme
    ;; flycheck-color-mode-line
    exec-path-from-shell
    buffer-move
@@ -60,7 +61,7 @@
 (require 'evil-visualstar)
 (require 'evil-leader)
 (require 'evil-matchit)
-(require 'evil-mode-line-color)
+(require 'evil-mode-line-color-dark)
 (require 'powerline)
 (require 'popup)
 (require 'fuzzy)
@@ -112,24 +113,25 @@
 
 ;; Set Font Face
 (set-face-attribute 'mode-line nil :box nil
-                    :family "Source Code Pro for Powerline"
-                    :height 100
+                    :family "Consolas"
+                    :height 102
                     ;; :weight 'normal
                     )
 (set-face-attribute 'mode-line-inactive nil :box nil)
 (set-face-attribute 'default nil
-                    :family "Source Code Pro for Powerline"
-                    :height 100
+                    :family "Consolas"
+                    :height 102
                     ;; :weight 'normal
                     )
 
+(setq-default line-spacing 1)
 (disable-theme 'molokai)
 (disable-theme 'zenburn)
 ;; powerline solarized customization
 (powerline-default-theme)        ; load powerline
 ;; (setq solarized-distinct-fringe-background t)
 ;; (setq solarized-use-less-bold t)
-(load-theme 'solarized-light t)                     ;; Load the best theme ever
+(load-theme 'warm-night t)                     ;; Load the best theme ever
 (setq scroll-margin 4)                              ;; Sane cursor and window movements
 (scroll-bar-mode -1)                                ;; No scrollbars, thank you
 (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
@@ -223,7 +225,8 @@
 ;; More intuitive ido key bindings now that ido is vertical
 ;; (ac-set-trigger-key "TAB") ; AFTER input prefix, press TAB key ASAP
 
-;; projectile
+;; projectilE
+(setq projectile-indexing-method 'alien)
 (projectile-global-mode)
 
 ;; Dash at point
@@ -252,7 +255,7 @@
 (evil-surround-mode 1)
 
 ;; evil leader
-(evil-leader/set-leader "<SPC>")
+(evil-leader/set-leader ",")
 
 ;; Make escape really escape everything
 ;; Clear insert state bindings.
@@ -412,7 +415,7 @@
 (defun my-mc-evil-switch-to-insert-state ()
   (when (and (bound-and-true-p evil-mode)
              (not (memq evil-state '(insert emacs))))
-    (setq my-mc-evil-previous-state evil-state)
+    (setq my-mc-evil-previous-state evil-State)
     (evil-insert 1)))
 
 (defun my-mc-evil-back-to-previous-state ()
@@ -433,7 +436,7 @@
   (if rectangular-region-mode
       (my-mc-evil-switch-to-insert-state)
     ;; (my-mc-evil-back-to-previous-state)  ; does not work...
-    (setq my-mc-evil-previous-state nil)))
+    (Setq my-mc-evil-previous-state nil)))
 
 (add-hook 'rectangular-region-mode-hook 'my-rrm-evil-switch-state)
 
@@ -591,8 +594,6 @@
 (define-key evil-operator-state-map (kbd "C-g") 'evil-normal-state)
 
 ;; keybindings that are in vim but not evil?
-(define-key evil-visual-state-map "L" 'exchange-point-and-mark)
-(define-key evil-visual-state-map "l" 'evil-visual-exchange-corners)
 ;; make ctrl-u scroll up as is in vim
 (define-key evil-normal-state-map (kbd "C-u") 'evil-scroll-up)
 ;; J joins lines
@@ -734,11 +735,19 @@
 
 ;; Misc Keybindings
 (evil-leader/set-key
-  "sv" 'split-window-horizontally
-  "sh" 'split-window-vertically
   "v"  'find-user-init-file
   "t"  'align-regexp
   "u"  'undo-tree-visualize)
+
+(defun evil-custom-yank-to-end-of-line ()
+  "Yank to end of line."
+  (interactive)
+  (evil-yank (point) (point-at-eol)))
+(define-key evil-normal-state-map "Y" 'evil-custom-yank-to-end-of-line)
+
+
+(define-key evil-window-map "s" 'split-window-horizontally)
+(define-key evil-window-map "v" 'split-window-vertically)
 
 ;; Autoindent on newline
 (global-set-key (kbd "RET") 'newline-and-indent)
